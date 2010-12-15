@@ -62,6 +62,48 @@ built as a single file application. However since there is code in
 there that could be useful if extracted and abstracted, hopefully this work
 can point out some of the problems.
 
+I tried to write down a simple dependency tree that explains how each
+chunk of javascript requires another, but delineating the reasons got to be
+too much so instead: What follows has less explanation than it could.
+
+`twikifier` functionality currently lives in `Test.js` and `TwikifierBase.js`.
+
+`Test.js` requires global `wikify()` in `Wikifier.js`.
+
+`Wikifier.js` requires the global `formatter`, a `Formatter` from `FormatterHelpers.js`.
+
+`FormatterHelpers.js` requires the global `config`, from `Config.js`, which requires the `navigator` global, which `twikifier` stubs in.
+
+A `Formatter` needs formatters, which are in `config` and defined in `Formatter.js`.
+
+`Formatter.js` requires `FormatterHelper.js`, creating a cycle.
+
+`Wikifier.js` requires global `createTiddlyText()`, from `Dom.js`.
+
+`Wikifier.js` requires global `createTiddlyElement()`, from `Dom.js`.
+
+`Formatter.js`, to format links, requires global `createTiddlyLink()` from `Utilities.js`.
+
+`Utilities.js` requires the `pushUnique` modification to the `Array` prototype. This is found in `BasicTypes.js`.
+
+`Formatter.js`, `FormatterHelpers.js`, `Utilities.js` all make use of a `store` global. A store, is a `TiddlyWiki` class, from `TiddlyWiki.js`.
+
+`TiddlyWiki.js` calls `instanceof Tiddler` (4 times) and `new Tiddler` (twice), thus requiring `Tiddler.js`.
+
+`Utilities.js` has `getTiddlyLinkInfo`, which requires `Lingo.js` for messages.
+(`Lingo.js` requires `Config.js` and `Utilities.js` (for merge()).)
+
+Presenting messages requires adding `format()` to the `String` prototype, thus requiring `Strings.js`.
+
+This gets us to a working formatter, but not macros.
+
+Adding `Macros.js` adds (limited, not yet tested) support for macros. `Macros.js` requires `Config.js`.
+
+The difficulty here is not so much that there are a bunch of interdependencies,
+but rather that the interdependencies are in the global scope and because
+the files are simply building blocks for a single file, there are no clues
+like import statements, namespaces, etc.
+
 # Next
 
 While the existing code will do basic rendering, to be truly useful
@@ -75,3 +117,8 @@ needs two things:
   to do this would be to talk HTTP to the TiddlyWeb server, but there
   are auth issues. The "store" then would be a recipe or bag collection
   from the server.
+
+# Who
+
+twikifier is written by Chris Dent and is Copyright 2010, Peermore Limited
+using a New BSD License.
