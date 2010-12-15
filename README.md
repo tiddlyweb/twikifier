@@ -99,6 +99,11 @@ This gets us to a working formatter, but not macros.
 
 Adding `Macros.js` adds (limited, not yet tested) support for macros. `Macros.js` requires `Config.js`.
 
+For macros to run, we need `invokeMacro`, which is from main.js. Rather
+than including main.js (which has active code at the global level) I
+made a copy of `invokeMacro`. It is not clear why the function definition
+code is in main.
+
 The difficulty here is not so much that there are a bunch of interdependencies,
 but rather that the interdependencies are in the global scope and because
 the files are simply building blocks for a single file, there are no clues
