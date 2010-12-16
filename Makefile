@@ -4,7 +4,7 @@ TWREMOTES = BasicTypes.js Strings.js Config.js Lingo.js Dom.js FormatterHelpers.
 
 TESTERS := $(wildcard test/*.txt)
 
-cat: get twikifier.js
+cat: get
 	cat TwikifierBase.js $(TWREMOTES) Test.js > twikifier.js
 
 clean:

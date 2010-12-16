@@ -35,8 +35,12 @@ In the repo directory run:
     make test
 
 This will get all the necessary TiddlyWiki code and concatenate it into
-`twikifier.js` and then run that file as a node script. To experiment more
-make changes to `TwikifierBase.js` or `Test.js` and then run `make test` again.
+`twikifier.js` and then run that file as a node script. The `test` target
+runs all the files in the test directory against twikifier.
+
+You can try your own wikitext by piping data into twikikifer on STDIN:
+
+    node twikifer.js < /tmp/mysampledata.txt
 
 # Why
 
