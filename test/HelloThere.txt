@@ -1,0 +1,16 @@
+Welcome to TiddlyWiki!
+
+~TiddlyWiki is a single html file which has all the characteristics of a [[wiki|WikiWikiWeb]] - including all of the content, the functionality (including editing, saving, tagging and searching) and the style sheet. Because it's a single file, it's very portable - you can email it, put it on a web server or share it via a [[USB stick|WikiOnAStick]].
+
+''But it's not just a wiki!'' It has very powerful plugin capabilities, so it can also be used to build new tools. You have full control over how it looks and behaves. For example, ~TiddlyWiki is already being used as:
+*A personal notebook
+*A GTD ("Getting Things Done") productivity tool
+*A collaboration tool
+*For building websites (this site is a ~TiddlyWiki file!)
+*For rapid prototyping
+*...and much more!
+You can import and export data to and from all sorts of places. Check out some of the [[Examples]] of ~TiddlyWiki in use, and the [[Features]] that are available.
+
+You can see the web functionality of ~TiddlyWiki by clicking on some of the links on this website. Double click some of the text to see 'edit mode'. For the full range of functions, including editing and saving changes, download and install a copy of the basic version and then follow the guidelines in [[Getting Started|GettingStarted]]. Have fun!
+
+<<tiddler Download>>

@@ -2,7 +2,9 @@
 # The required pieces of code from the TiddlyWiki core.
 TWREMOTES = BasicTypes.js Strings.js Config.js Lingo.js Dom.js FormatterHelpers.js Formatter.js Tiddler.js TiddlyWiki.js Utilities.js Wikifier.js Macros.js
 
-cat: get
+TESTERS := $(wildcard test/*.txt)
+
+cat: get twikifier.js
 	cat TwikifierBase.js $(TWREMOTES) Test.js > twikifier.js
 
 clean:
@@ -14,4 +16,4 @@ get: $(TWREMOTES)
 	curl -o $*.js http://svn.tiddlywiki.org/Trunk/core/js/$*.js
 	
 test: cat
-	node twikifier.js
+	@for e in $(TESTERS); do echo "$$e#################################"; cat $$e | node twikifier.js; done
