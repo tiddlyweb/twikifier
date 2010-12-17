@@ -10,42 +10,65 @@ return wikify;
 // (probably /usr/local/lib/node if you are using npm)
 var jsdom = require('jsdom');
 var jquery = require('jquery');
+var fs = require('fs');
 
-// create a browser window
-var window = jsdom.jsdom(
-        '<html><head></head><body><div id="tiddler"></div></body></html>'
-    ).createWindow(); 
+var formatText = function(text) {
+    // create a browser window
+    var window = jsdom.jsdom(
+            '<html><head></head><body><div id="tiddler"></div></body></html>'
+        ).createWindow(); 
 
-// jquery-ize the window
-var jQuery = jquery.create(window);
+    // jquery-ize the window
+    var jQuery = jquery.create(window);
 
-var run = function(window) {
-    // read stdin to get text
-    var stdin = process.openStdin();
-    stdin.setEncoding('utf8');
-    var text = '';
-
-    // Create formatter.
+    // Create formatter for _that_ window.
     var wikify = createWikifier(window, jQuery);
 
-    var formatText = function(window, text) {
-        var place = window.document.getElementById('tiddler');;
+    var place = window.document.getElementById('tiddler');;
 
-        // wikify the tiddler text.
-        // XXX This should be functional, returning a string,
-        // not building up the dom in place.
-        wikify(text, place, null, null);
+    // wikify the tiddler text.
+    // XXX This should be functional, returning a string,
+    // not building up the dom in place.
+    wikify(text, place, null, null);
 
-        console.log(window.document.innerHTML);
-    }
+    return window.document.innerHTML;
+}
 
-    stdin.on('data', function(chunk) {
+var run = function(file) {
+    var text = '';
+
+    file.on('data', function(chunk) {
         text += chunk;
     });
 
-    stdin.on('end', function() {
-        formatText(window, text);
+    file.on('end', function() {
+        console.log(formatText(text));
     });
 };
 
-run(window);
+// read a file to get text
+var runFile = function(filename) {
+    var text = '';
+    stream = fs.createReadStream(filename, { 'encoding': 'utf8' });
+    run(stream);
+}
+
+// read stdin to get text
+var runStdin = function() {
+    var stdin = process.openStdin();
+    stdin.setEncoding('utf8');
+    run(stdin);
+}
+
+var main = function() {
+    var arglength = process.argv.length;
+    if (arglength > 2) {
+        for (var i = 2; i < arglength ; i++) {
+            runFile(process.argv[i]);
+        }
+    } else {
+        runStdin();
+    }
+}
+
+main();
