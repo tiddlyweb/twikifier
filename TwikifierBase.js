@@ -1,10 +1,7 @@
+// create a function scope (this is closed in another file)
+var createWikifier = function(window, jQuery) {
 
-// require the jsdom and jquery libraries, via NODE_PATH
-// (probably /usr/local/lib/node if you are using npm)
-var jsdom = require('jsdom');
-var jquery = require('jquery');
-
-/*** globals required to get rolling ***/
+/*** psuedo-globals required to get rolling ***/
 
 // the version macro needs this
 var version = {
@@ -15,14 +12,6 @@ var version = {
 
 // config.js won't process without a navigator
 var navigator = { userAgent: "twikifier" };  
-
-
-// create a browser window
-var window = jsdom.jsdom(
-        '<html><head></head><body><div id="tiddler"></div></body></html>'
-    ).createWindow(); 
-// jquery-ize the window
-var jQuery = jquery.create(window);
 
 // XXX TiddlyWiki requires a document global, rather than
 // being passed that document in startup.
