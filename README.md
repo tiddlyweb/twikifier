@@ -40,7 +40,13 @@ runs all the files in the test directory against twikifier.
 
 You can try your own wikitext by piping data into twikikifer on STDIN:
 
-    node twikifer.js < /tmp/mysampledata.txt
+    node twikifier.js < /tmp/mysampledata.txt
+
+or by giving the names of multiple files on the command line:
+
+    node twikifier.js /tmp/mysampledata.txt /tmp/someotherdata.txt
+
+As the tool develops there will be other interfaces.
 
 # Why
 
