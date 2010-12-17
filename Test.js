@@ -71,4 +71,7 @@ var main = function() {
     }
 }
 
-main();
+exports.formatText = formatText;
+
+if (module.parent === undefined)
+    main();
