@@ -9,7 +9,7 @@ cat: get
 	cat TwikifierBase.js $(TWREMOTES) Test.js > twikifier.js
 
 clean:
-	rm $(TWREMOTES) twikifier.js
+	rm -f $(TWREMOTES) twikifier.js
 
 get: $(TWREMOTES)
 
