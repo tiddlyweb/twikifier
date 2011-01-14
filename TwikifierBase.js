@@ -33,35 +33,3 @@ function alert(e) {
     console.log(e);
 }
 
-// stub out saveChanges
-// XXX Lingo.js won't process without saveChanges defined
-function saveChanges(x, y) {
-    return;
-}
-
-// incorporate invokeMacro by hand, including main.js causes problems
-// XXX why is invokeMacro in main.js? Why are there any function other
-// than main in main.js?
-function invokeMacro(place,macro,params,wikifier,tiddler)
-{
-    try {
-        var m = config.macros[macro];
-        if(m && m.handler) {
-            var tiddlerElem = story.findContainingTiddler(place);
-            //# Provide context for evaluated macro parameters (eg <<myMacro {{tiddler.title}}>>)
-            window.tiddler = tiddlerElem ? store.getTiddler(tiddlerElem.getAttribute("tiddler")) : null;
-            window.place = place;
-            var allowEval = true;
-            if(config.evaluateMacroParameters=="system") {
-                if(!tiddler || tiddler.tags.indexOf("systemAllowEval") == -1) {
-                    allowEval = false;
-                }
-            }
-            m.handler(place,macro,m.noPreParse?null:params.readMacroParams(!allowEval),wikifier,params,tiddler);
-        } else {
-            createTiddlyError(place,config.messages.macroError.format([macro]),config.messages.macroErrorDetails.format([macro,config.messages.missingMacro]));
-        }
-    } catch(ex) {
-        createTiddlyError(place,config.messages.macroError.format([macro]),config.messages.macroErrorDetails.format([macro,ex.toString()]));
-    }
-}
