@@ -1,6 +1,6 @@
 
 # The required pieces of code from the TiddlyWiki core.
-TWREMOTES = BasicTypes.js Strings.js Config.js FormatterHelpers.js Formatter.js Tiddler.js TiddlyWiki.js Utilities.js Wikifier.js Macros.js
+TWREMOTES = BasicTypes.js Strings.js Config.js FormatterHelpers.js Formatter.js Tiddler.js TiddlyWiki.js Utilities.js TiddlerFields.js Wikifier.js Macros.js Dates.js Lingo.js
 
 TESTERS := $(wildcard test/*.txt)
 ASSERTS := $(wildcard test/*.js)

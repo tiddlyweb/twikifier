@@ -33,3 +33,10 @@ function alert(e) {
     console.log(e);
 }
 
+// for lingo.js to work
+function saveChanges(onlyIfDirty,tiddlers) { return; }
+
+// copied from Dom.js
+function addClass(e,className) {
+    jQuery(e).addClass(className);
+}
