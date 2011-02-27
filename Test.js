@@ -117,5 +117,5 @@ var main = function() {
 
 exports.formatText = formatText;
 
-if (module.parent === undefined)
+if (module.parent === null)
     main();
