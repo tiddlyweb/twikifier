@@ -14,6 +14,5 @@ merge(config.messages,{
 return [wikify, store, Tiddler];
 }
 
-if (!exports)
-    exports = {}
-exports.createWikifier = createWikifier;
+if (typeof exports != "undefined")
+    exports.createWikifier = createWikifier;
