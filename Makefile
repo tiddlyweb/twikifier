@@ -6,7 +6,7 @@ TESTERS := $(wildcard test/*.txt)
 ASSERTS := $(wildcard test/*.js)
 
 cat: get
-	cat TwikifierBase.js $(TWREMOTES) Test.js > twikifier.js
+	cat TwikifierBase.js $(TWREMOTES) TwikifierEnd.js Test.js > twikifier.js
 
 clean:
 	rm -f $(TWREMOTES) twikifier.js
