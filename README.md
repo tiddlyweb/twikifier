@@ -38,13 +38,20 @@ This will get all the necessary TiddlyWiki code and concatenate it into
 `twikifier.js` and then run that file as a node script. The `test` target
 runs all the files in the test directory against twikifier.
 
-You can try your own wikitext by piping data into twikikifer on STDIN:
+You can try your own wikitext by piping data into twikify on STDIN:
 
-    node twikifier.js < /tmp/mysampledata.txt
+    ./twikify <url for tiddler collection> < /tmp/mysampledata.txt
 
 or by giving the names of multiple files on the command line:
 
-    node twikifier.js /tmp/mysampledata.txt /tmp/someotherdata.txt
+    ./twikify <url for tiddler collection> /tmp/mysampledata.txt \
+        /tmp/someotherdata.txt
+
+`<url for tiddler collection>` should be replaced with the url of a collection
+of tiddlers, in JSON, as found in TiddlyWeb. Things like:
+
+    http://cdent-test7.tiddlyspace.com/bags/cdent-test7_public/tiddlers
+    http://cdent-test7.tiddlyspace.com/recipes/cdent-test7_public/tiddlers
 
 As the tool develops there will be other interfaces.
 
@@ -76,9 +83,9 @@ I tried to write down a simple dependency tree that explains how each
 chunk of javascript requires another, but delineating the reasons got to be
 too much so instead: What follows has less explanation than it could.
 
-`twikifier` functionality currently lives in `Test.js` and `TwikifierBase.js`.
+`twikifier` functionality currently lives in `twikify` and `TwikifierBase.js`.
 
-`Test.js` requires global `wikify()` in `Wikifier.js`.
+`twikify` requires global `wikify()` in `Wikifier.js`.
 
 `Wikifier.js` requires the global `formatter`, a `Formatter` from `FormatterHelpers.js`.
 
@@ -127,13 +134,8 @@ needs two things:
 
 * To present a web service or local socket that takes an input (a text
   string, a tiddler bag/title combo?) and returns the generated HTML.
-* A Store class which satisfies the store methods that are called
-  throughout Config, Formatter*, Lingo, Macros, Wikifier etc. One way 
-  to do this would be to talk HTTP to the TiddlyWeb server, but there
-  are auth issues. The "store" then would be a recipe or bag collection
-  from the server.
 
 # Who
 
-twikifier is written by Chris Dent and is Copyright 2010, Peermore Limited
+twikifier is written by Chris Dent and is Copyright 2011, Peermore Limited
 using a New BSD License.
