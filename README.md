@@ -22,9 +22,9 @@ goes like this:
 
     brew install node npm
 
-One you have npm, install jsdom, htmlparser and jquery:
+One you have npm, install jsdom, htmlparser, jquery and tav
 
-    npm install jsdom htmlparser jquery
+    npm install jsdom htmlparser jquery tav
 
 Make sure you set `NODE_PATH`:
 

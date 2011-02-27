@@ -1,5 +1,14 @@
 #!/usr/local/bin/node
 
+
+var opts = require('tav').set({
+    collection: {
+        note: 'Remote Tiddler Collection URI',
+        value: null
+    }
+}, "wikify some tiddlywiki text");
+
+
 // require the jsdom and jquery libraries, via NODE_PATH
 // (probably /usr/local/lib/node if you are using npm)
 var jsdom = require('jsdom');
@@ -68,40 +77,48 @@ var loadRemoteTiddlers = function(store, Tiddler, jsonTiddlers) {
     }
 }
 
+var processdata = function(wikify) {
+    var arglength = opts.args.length;
+    if (arglength) {
+        for (var i = 0; i < arglength ; i++) {
+            runFile(wikify, opts.args[i]);
+        }
+    } else {
+        runStdin(wikify);
+    }
+}
+
 var main = function() {
-    var arglength = process.argv.length;
-    var uri = process.argv[2];
-    var parsed_uri = url.parse(uri);
-    
-    // Create formatter for _that_ window.
+    // Create formatter for the window.
     var globals = createWikifier(window, jQuery);
     var wikify = globals[0];
     var store = globals[1];
     var Tiddler = globals[2];
 
-    var client = http.createClient(parsed_uri.port ? parsed_uri.port : 80,
+    var uri = opts.collection
+    if (uri) {
+        var parsed_uri = url.parse(uri);
+
+        var client = http.createClient(parsed_uri.port ? parsed_uri.port : 80,
             parsed_uri.hostname);
-    var request = client.request('GET', parsed_uri.pathname + '?fat=1', 
+        var request = client.request('GET', parsed_uri.pathname + '?fat=1', 
             {'host': parsed_uri.hostname,
              'accept': 'application/json'});
-    request.end();
-    request.on('response', function(response) {
-        response.setEncoding('utf8');
-        var data = ''
-        response.on('data', function(chunk) {
-            data += chunk;
+        request.end();
+        request.on('response', function(response) {
+            response.setEncoding('utf8');
+            var data = ''
+            response.on('data', function(chunk) {
+                data += chunk;
+            });
+            response.on('end', function() {
+                loadRemoteTiddlers(store, Tiddler, data);
+                processdata(wikify);
+            });
         });
-        response.on('end', function() {
-            loadRemoteTiddlers(store, Tiddler, data);
-            if (arglength > 3) {
-                for (var i = 3; i < arglength ; i++) {
-                    runFile(wikify, process.argv[i]);
-                }
-            } else {
-                runStdin(wikify);
-            }
-        });
-    });
+    } else {
+        processdata(wikify);
+    }
 }
 
 exports.formatText = formatText;

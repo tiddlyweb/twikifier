@@ -19,7 +19,7 @@ get: $(TWREMOTES)
 build: cat
 	
 test: build
-	@for e in $(TESTERS); do echo "$$e#################################"; cat $$e | ./twikify http://cdent-test7.tiddlyspace.com/bags/cdent-test7_public/tiddlers; done
+	@for e in $(TESTERS); do echo "$$e#################################"; cat $$e | ./twikify --collection=http://cdent-test7.tiddlyspace.com/bags/cdent-test7_public/tiddlers; done
 
 jstest: build
 	@for e in $(ASSERTS); do echo $$e; ./$$e ; done
