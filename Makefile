@@ -6,7 +6,7 @@ TESTERS := $(wildcard test/*.txt)
 ASSERTS := $(wildcard test/*.js)
 
 cat: get
-	cat TwikifierBase.js $(TWREMOTES) TwikifierEnd.js Test.js > twikifier.js
+	cat TwikifierBase.js $(TWREMOTES) TwikifierEnd.js > twikifier.js
 
 clean:
 	rm -f $(TWREMOTES) twikifier.js
@@ -19,7 +19,7 @@ get: $(TWREMOTES)
 build: cat
 	
 test: build
-	@for e in $(TESTERS); do echo "$$e#################################"; cat $$e | node twikifier.js http://cdent-test7.tiddlyspace.com/bags/cdent-test7_public/tiddlers; done
+	@for e in $(TESTERS); do echo "$$e#################################"; cat $$e | ./twikify http://cdent-test7.tiddlyspace.com/bags/cdent-test7_public/tiddlers; done
 
 jstest: build
 	@for e in $(ASSERTS); do echo $$e; ./$$e ; done

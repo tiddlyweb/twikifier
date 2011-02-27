@@ -1,3 +1,4 @@
+#!/usr/local/bin/node
 
 // require the jsdom and jquery libraries, via NODE_PATH
 // (probably /usr/local/lib/node if you are using npm)
@@ -12,6 +13,7 @@ var window = jsdom.jsdom(
 
 // jquery-ize the window
 var jQuery = jquery.create(window);
+var createWikifier = require('./twikifier.js').createWikifier;
 
 
 var formatText = function(wikify, text) {
