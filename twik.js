@@ -14,7 +14,7 @@ twik.formatText = function(window, wikify, text) {
     return window.document.innerHTML;
 }
 
-twik.loadRemoteTiddlers = function(store, Tiddler, jsonTiddlers) {
+twik.loadRemoteTiddlers = function(store, Tiddler, uri, jsonTiddlers) {
     var tiddlers = JSON.parse(jsonTiddlers);
     for (var i = 0; i < tiddlers.length ; i++) {
         var t = new Tiddler(tiddlers[i].title);
@@ -26,6 +26,9 @@ twik.loadRemoteTiddlers = function(store, Tiddler, jsonTiddlers) {
         t.fields = tiddlers[i].fields;
         store.addTiddler(t);
     }
+    storeURL = new Tiddler('SiteUrl');
+    storeURL.text = uri + '/';
+    store.addTiddler(storeURL);
 }
 
 

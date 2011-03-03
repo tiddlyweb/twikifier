@@ -5,6 +5,19 @@
 // XXX Why is formatter a global!!!!
 var formatter = new Formatter(config.formatters);
 
+//clobber createTiddlyLink
+function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromTiddler,noToggle)
+{
+	var text = includeText ? title : null;
+	var i = getTiddlyLinkInfo(title,className);
+	var btn = createExternalLink(place,
+                store.getTiddlerText("SiteUrl", null) + title)
+        btn.className += ' ' + className;
+	return btn;
+}
+
+
+
 // messages required for invokeMacro
 merge(config.messages,{
     macroError: "Error in macro <<\%0>>",

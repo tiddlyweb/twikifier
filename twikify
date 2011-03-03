@@ -93,7 +93,7 @@ var main = function() {
                 data += chunk;
             });
             response.on('end', function() {
-                twik.loadRemoteTiddlers(store, Tiddler, data);
+                twik.loadRemoteTiddlers(store, Tiddler, uri, data);
                 processdata(window, wikify);
             });
         });

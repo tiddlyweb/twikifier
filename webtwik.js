@@ -13,7 +13,7 @@
             collection_uri = host
                 + 'recipes/'
                 + encodeURIComponent(recipe)
-                + '/tiddlers.json?fat=1';
+                + '/tiddlers';
             tiddler_uri = host
                 + 'recipes/'
                 + encodeURIComponent(recipe)
@@ -24,7 +24,7 @@
             collection_uri = host
                 + 'bags/'
                 + encodeURIComponent(bag)
-                + '/tiddlers.json?fat=1';
+                + '/tiddlers';
             tiddler_uri = host
                 + 'bags/'
                 + encodeURIComponent(bag)
@@ -45,8 +45,6 @@
         wikify = globals[0];
         store = globals[1];
         Tiddler = globals[2];
-        store.uri = collection_uri;
-        wikify.uri = collection_uri;
 
         var loadTiddlerText = function(tiddler_div, tiddler_uri, title) {
             tiddler_div.innerHTML = "<h1>" + title + "</h1>";
@@ -66,10 +64,10 @@
             loadTiddlerText(jqtiddler[0], tiddler_uri, title);
         } else {
             $.ajax({
-                url: collection_uri,
+                url: collection_uri + '.json?fat=1',
                 type: 'GET',
                 success: function(data, status, xhr) {
-                    twik.loadRemoteTiddlers(store, Tiddler, data);
+                    twik.loadRemoteTiddlers(store, Tiddler, collection_uri, data);
                     loadTiddlerText(jqtiddler[0], tiddler_uri, title);
                 },
                 error: function(xhr, error, exc) {
