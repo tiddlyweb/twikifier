@@ -10,8 +10,9 @@ function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromT
 {
 	var text = includeText ? title : null;
 	var i = getTiddlyLinkInfo(title,className);
-	var btn = createExternalLink(place,
-                store.getTiddlerText("SiteUrl", null) + title)
+        var urlString = store.getTiddlerText("SiteUrl");
+        var linktext = urlString ? urlString.format([title]) : title;
+	var btn = createExternalLink(place, linktext);
         btn.className += ' ' + className;
 	return btn;
 }
