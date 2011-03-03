@@ -1,8 +1,6 @@
 (function() {
-    var globals = createWikifier(window, $);
-    var wikify = globals[0];
-    var store = globals[1];
-    var Tiddler = globals[2];
+
+    var wikifiers = {};
 
     var formatTiddler = function(jqtiddler) {
         var host = jqtiddler.attr('server.host');
@@ -15,7 +13,7 @@
             collection_uri = host
                 + 'recipes/'
                 + encodeURIComponent(recipe)
-                + '/tiddlers.json';
+                + '/tiddlers.json?fat=1';
             tiddler_uri = host
                 + 'recipes/'
                 + encodeURIComponent(recipe)
@@ -26,7 +24,7 @@
             collection_uri = host
                 + 'bags/'
                 + encodeURIComponent(bag)
-                + '/tiddlers.json';
+                + '/tiddlers.json?fat=1';
             tiddler_uri = host
                 + 'bags/'
                 + encodeURIComponent(bag)
@@ -34,6 +32,21 @@
                 + encodeURIComponent(title)
                 + '.json';
         }
+
+        var useCache = false;
+        var globals, wikify, store, Tiddler;
+        if (wikifiers[collection_uri] === undefined) {
+            globals = createWikifier(window, $);
+            wikifiers[collection_uri] = globals;
+        } else {
+            globals = wikifiers[collection_uri];
+            useCache = true;
+        }
+        wikify = globals[0];
+        store = globals[1];
+        Tiddler = globals[2];
+        store.uri = collection_uri;
+        wikify.uri = collection_uri;
 
         var loadTiddlerText = function(tiddler_div, tiddler_uri, title) {
             tiddler_div.innerHTML = "<h1>" + title + "</h1>";
@@ -49,18 +62,22 @@
             });
         };
 
-        $.ajax({
-            url: collection_uri,
-            type: 'GET',
-            success: function(data, status, xhr) {
-                twik.loadRemoteTiddlers(store, Tiddler, data);
-                loadTiddlerText(jqtiddler[0], tiddler_uri, title);
-            },
-            error: function(xhr, error, exc) {
-                jqtiddler[0].innherHTML = xhr.statusText;
-            },
-            dataType: 'text',
-        });
+        if (useCache) {
+            loadTiddlerText(jqtiddler[0], tiddler_uri, title);
+        } else {
+            $.ajax({
+                url: collection_uri,
+                type: 'GET',
+                success: function(data, status, xhr) {
+                    twik.loadRemoteTiddlers(store, Tiddler, data);
+                    loadTiddlerText(jqtiddler[0], tiddler_uri, title);
+                },
+                error: function(xhr, error, exc) {
+                    jqtiddler[0].innherHTML = xhr.statusText;
+                },
+                dataType: 'text',
+            });
+        }
     };
 
     $('.tiddler').each(function(index) {
