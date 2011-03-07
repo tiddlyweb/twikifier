@@ -12,7 +12,7 @@ function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromT
 	var i = getTiddlyLinkInfo(title,className);
         var urlString = store.getTiddlerText("SiteUrl");
         var linktext = urlString ? urlString.format([title]) : title;
-	var btn = createExternalLink(place, linktext);
+	var btn = createExternalLink(place, linktext, text);
         btn.className += ' ' + className;
 	return btn;
 }
