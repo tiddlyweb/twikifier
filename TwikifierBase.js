@@ -7,7 +7,8 @@ var createWikifier = function(window, jQuery) {
 var version = {
     major: 0,
     minor: 1,
-    revision: 0
+    revision: 0,
+    extensions: {}
 };
 
 // config.js won't process without a navigator
