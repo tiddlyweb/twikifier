@@ -4,8 +4,7 @@
 
     var formatTiddler = function(jqtiddler) {
         var server_host = jqtiddler.attr('server.host');
-        var host = server_host ? server_host :
-            window.location.protocol + '//' + window.location.host + '/';
+        var host = server_host ? server_host : '/';
         var recipe = jqtiddler.attr('server.recipe');
         var bag = jqtiddler.attr('server.bag');
         var title = jqtiddler.attr('title');
