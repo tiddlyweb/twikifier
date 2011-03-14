@@ -5,28 +5,32 @@
     <body>
         <div class="tiddler"
             title="HelloThere"
-            server.host="http://cdent.tiddlyspace.com/"
             server.recipe="cdent_public">
         </div>
         <div class="tiddler"
             title="Backstage Review"
-            server.host="http://cdent.tiddlyspace.com/"
             server.bag="cdent_public">
         </div>
         <div class="tiddler"
             title="plate"
-            server.host="http://cdent.tiddlyspace.com/"
             server.bag="cdent_public">
         </div>
         <div class="tiddler"
             title="Stories"
-            server.host="http://tiddlyspace.tiddlyspace.com/"
             server.recipe="tiddlyspace_public">
         </div>
     </body>
     <script
         src="https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"
         type="text/javascript"></script>
+    <script>
+          $.ajaxSetup({
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader("X-ControlView",
+                    "false");
+                }
+            });
+    </script>
     <script
         src="twikifier.js"
         type="text/javascript"></script>
