@@ -48,7 +48,6 @@
         Tiddler = globals[2];
 
         var loadTiddlerText = function(tiddler_div, tiddler_uri, title) {
-            tiddler_div.innerHTML = "<h1>" + title + "</h1>";
             $.ajax({
                 url: tiddler_uri,
                 type: 'GET',

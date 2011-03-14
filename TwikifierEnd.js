@@ -25,6 +25,8 @@ merge(config.messages,{
     macroErrorDetails: "Error while executing macro <<\%0>>:\n%1",
     missingMacro: "No such macro"});
 
+config.options.chkOpenInNewWindow = false;
+
 return [wikify, store, Tiddler];
 }
 
