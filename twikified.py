@@ -45,11 +45,11 @@ class Serialization(HTMLSerialization):
 <script src="%(container)stwik" type="text/javascript"></script>
 <script src="%(container)swebtwik" type="text/javascript"></script>
 """ % {'container': common_container}
-        tiddler = '<div class="tiddler" title="%s" %s></div>' % (
+        tiddler_div = '<div class="tiddler" title="%s" %s></div>' % (
                 escape_attribute_value(tiddler.title),
                 self._tiddler_provenance(tiddler))
         self.environ['tiddlyweb.title'] = tiddler.title
-        return tiddler + scripts
+        return tiddler_div + scripts
 
     def _tiddler_provenance(self, tiddler):
         if tiddler.recipe:
