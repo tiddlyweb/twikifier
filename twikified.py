@@ -8,7 +8,7 @@ eventually?
 
 from tiddlyweb.serializations.html import Serialization as HTMLSerialization
 
-from tiddlyweb.web.util import escape_attribute_value
+from tiddlyweb.web.util import escape_attribute_value, html_encode
 
 SERIALIZERS = {
     'text/html': ['twikified', 'text/html; charset=UTF-8'],
@@ -45,11 +45,18 @@ class Serialization(HTMLSerialization):
 <script src="%(container)stwik" type="text/javascript"></script>
 <script src="%(container)swebtwik" type="text/javascript"></script>
 """ % {'container': common_container}
-        tiddler_div = '<div class="tiddler" title="%s" %s></div>' % (
+        tiddler_div = '<div class="tiddler" title="%s" %s><pre>%s</pre></div>' % (
                 escape_attribute_value(tiddler.title),
-                self._tiddler_provenance(tiddler))
+                self._tiddler_provenance(tiddler),
+                self._text(tiddler))
         self.environ['tiddlyweb.title'] = tiddler.title
         return tiddler_div + scripts
+
+    def _text(self, tiddler):
+        print tiddler.type
+        if not tiddler.type or tiddler.type == 'None':
+            return html_encode(tiddler.text)
+        return ''
 
     def _tiddler_provenance(self, tiddler):
         if tiddler.recipe:

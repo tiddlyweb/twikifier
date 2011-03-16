@@ -48,16 +48,24 @@
         Tiddler = globals[2];
 
         var loadTiddlerText = function(tiddler_div, tiddler_uri, title) {
-            $.ajax({
-                url: tiddler_uri,
-                type: 'GET',
-                success: function(data ,status, xhr) {
-                    wikify(data.text, tiddler_div, null, null);
-                },
-                errror: function(xhr, error, exc) {
-                    tiddler_div.innherHTML = xhr.statusText;
-                },
-            });
+            pre_element = $(tiddler_div).find('pre').first();
+            text = unescape(pre_element.text());
+            pre_element.remove()
+            console.log('text', text);
+            if (text) {
+                wikify(text, tiddler_div, null, null);
+            } else {
+                $.ajax({
+                    url: tiddler_uri,
+                    type: 'GET',
+                    success: function(data ,status, xhr) {
+                        wikify(data.text, tiddler_div, null, null);
+                    },
+                    errror: function(xhr, error, exc) {
+                        tiddler_div.innherHTML = xhr.statusText;
+                    },
+                });
+            }
         };
 
         if (useCache) {
