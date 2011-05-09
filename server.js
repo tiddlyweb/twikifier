@@ -29,7 +29,6 @@ var processData = function(store, tiddlerTitle, wikify) {
     place.appendTo('body');
     var output = formatText(place[0], wikify, tiddler.text);
     place.remove();
-    console.log(output);
     return output;
 }
 
@@ -53,7 +52,6 @@ var processRequest = function(args) {
     if (!useCache) {
         console.log('not using cache for', collection_uri);
         var parsed_uri = url.parse(collection_uri);
-        console.log('pu', parsed_uri);
 
 
         var client = http.createClient(parsed_uri.port ? parsed_uri.port : 80,
@@ -63,7 +61,6 @@ var processRequest = function(args) {
                 'accept': 'application/json'});
         request.end();
         request.on('response', function(response) {
-                console.log('got response');
                 response.setEncoding('utf8');
                 var data = '';
                 response.on('data', function(chunk) {
@@ -86,14 +83,14 @@ server.addListener('connection', function(c) {
         c.addListener('data', function(data) {
             dataString = data.toString();
             dataString = dataString.replace(/(\r|\n)+$/, '');
-            args = dataString.split(/\s+/);
+            args = dataString.split(/\x00/);
             console.log(args);
             output = processRequest(args);
             if (typeof output=="string") {
-                c.write(output);
+                c.end(output);
             } else {
                 output.on('output', function(data) {
-                    c.write(data);
+                    c.end(data);
                 });
             }
         });

@@ -2,13 +2,12 @@
 Serialization that uses twikifier to render.
 
 It can render in two ways. If config['twikified.render'] is
-True, then rendering will be done serverside against a command
-line node client called twikify. Otherwise rendering will be
+True, the default, then rendering will be done serverside
+with a nodje.js based socket servey. Otherwise rendering will be
 delegated to the client.
 
-The twikify script is located at config['twikified.twikify'],
-'./twikify' by default. NODE_PATH handling is up to the installer
-at this point.
+The socket is at config['twikified.socket'], '/tmp/wst.sock' by
+default. Running the server is up to the installer at this point.
 
 If client side rendering is used, then a bunch of javascript is
 expected to be found in config['twikified.container'], defaulting
@@ -16,7 +15,12 @@ to '/bags/common/tiddlers/'. The installer is expected to get the
 right tiddlers in the right place (for now).
 """
 
-import subprocess
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
+import socket
 
 from tiddlywebplugins.atom.htmllinks import Serialization as HTMLSerialization
 
@@ -42,13 +46,22 @@ def render(tiddler, environ):
         collection = recipe_url(environ, Recipe(tiddler.recipe)) + '/tiddlers'
     else:
         collection = bag_url(environ, Bag(tiddler.bag)) + '/tiddlers'
-    # let any errors raise themselves
-    twikify = environ['tiddlyweb.config'].get('twikified.twikify',
-            './twikify')
-    text = subprocess.Popen([twikify, '--collection=%s' % collection],
-            stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE).communicate(tiddler.text)[0]
-    return text.decode('UTF-8')
+    socket_path = environ['tiddlyweb.config'].get('twikified.socket',
+            '/tmp/wst.sock')
+    twik_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    twik_socket.connect('/tmp/wst.sock')
+    twik_socket.sendall('%s\x00%s\n' % (collection, tiddler.title))
+    output = ''
+    try:
+        while True:
+            data = twik_socket.recv(1024)
+            if data:
+                output += data
+            else:
+                break
+    finally:
+        twik_socket.close()
+    return output.decode('UTF-8')
 
 
 class Serialization(HTMLSerialization):
