@@ -40,11 +40,11 @@ runs all the files in the test directory against twikifier.
 
 You can try your own wikitext by piping data into twikify on STDIN:
 
-    ./twikify <url for tiddler collection> < /tmp/mysampledata.txt
+    ./twikify --collection=<url for tiddler collection> < /tmp/mysampledata.txt
 
 or by giving the names of multiple files on the command line:
 
-    ./twikify <url for tiddler collection> /tmp/mysampledata.txt \
+    ./twikify --collection=<url for tiddler collection> /tmp/mysampledata.txt \
         /tmp/someotherdata.txt
 
 `<url for tiddler collection>` should be replaced with the url of a collection
