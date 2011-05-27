@@ -20,10 +20,9 @@ function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromT
 
 
 // messages required for invokeMacro
-merge(config.messages,{
-    macroError: "Error in macro <<\%0>>",
-    macroErrorDetails: "Error while executing macro <<\%0>>:\n%1",
-    missingMacro: "No such macro"});
+function createTiddlyError(place, msg, details) {
+	jQuery(place).append("<!-- " + msg + "\n" + details + " -->");
+}
 
 config.options.chkOpenInNewWindow = false;
 
