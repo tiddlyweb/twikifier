@@ -26,6 +26,10 @@ One you have npm, install jsdom, htmlparser, jquery and tav
 
     npm install jsdom htmlparser jquery tav
 
+If you want to use server.js you also need:
+
+    npm install memcached hashlib node-uuid
+
 Make sure you set `NODE_PATH`:
 
     export NODE_PATH=/usr/local/lib/node
