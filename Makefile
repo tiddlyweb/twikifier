@@ -1,6 +1,6 @@
 
 # The required pieces of code from the TiddlyWiki core.
-TWREMOTES = BasicTypes.js Strings.js Config.js FormatterHelpers.js Formatter.js Tiddler.js TiddlyWiki.js Utilities.js TiddlerFields.js Wikifier.js Macros.js Dates.js Lingo.js
+TWREMOTES = BasicTypes.js Strings.js Config.js Filters.js FormatterHelpers.js Formatter.js Tiddler.js TiddlyWiki.js Utilities.js TiddlerFields.js Wikifier.js Macros.js Dates.js Lingo.js
 SPACELINK = http://svn.tiddlywiki.org/Trunk/contributors/PaulDowney/plugins/TiddlySpaceLinkPlugin/TiddlySpaceLinkPlugin.js
 
 TESTERS := $(wildcard test/*.txt)
@@ -11,14 +11,17 @@ cat: get tsp
 
 clean:
 	rm -f $(TWREMOTES) twikifier.js
+	find . -name "*.pyc" | xargs rm || true
+	rm tiddlyweb.log || true
+	rm -r store || true
 
 tsp:
-	curl -o TiddlySpaceLinkPlugin.js http://svn.tiddlywiki.org/Trunk/contributors/PaulDowney/plugins/TiddlySpaceLinkPlugin/TiddlySpaceLinkPlugin.js
+	curl -o TiddlySpaceLinkPlugin.js $(SPACELINK)
 
 get: $(TWREMOTES)
 
 %.js:
-	curl -o $*.js http://svn.tiddlywiki.org/Trunk/core/js/$*.js
+	curl -o $*.js https://github.com/TiddlyWiki/tiddlywiki/raw/master/js/$*.js
 
 build: cat
 	
