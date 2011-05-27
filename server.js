@@ -35,6 +35,10 @@ var processData = function(store, tiddlerTitle, wikify) {
 var processRequest = function(args) {
     var collection_uri = args[0];
     var tiddlerTitle = args[1];
+    var tiddlyweb_cookie = '';
+    if (args.length > 2) {
+        tiddlyweb_cookie = args[2];
+    }
 
     var useCache = false;
     var globals, wikify, store, Tiddler;
@@ -53,25 +57,33 @@ var processRequest = function(args) {
         console.log('not using cache for', collection_uri);
         var parsed_uri = url.parse(collection_uri);
 
-
         var client = http.createClient(parsed_uri.port ? parsed_uri.port : 80,
                 parsed_uri.hostname);
         var request = client.request('GET', parsed_uri.pathname + '?fat=1',
                 {'host': parsed_uri.hostname,
-                'accept': 'application/json'});
+                'accept': 'application/json',
+                'cookie': tiddlyweb_cookie});
+        request.on('error', function(err) {
+            emitter.emit('output', 'Error getting collection: ' + err);
+        });
         request.end();
         request.on('response', function(response) {
-                response.setEncoding('utf8');
-                var data = '';
-                response.on('data', function(chunk) {
-                    data += chunk;
-                });
-                response.on('end', function() {
-                    twik.loadRemoteTiddlers(store, Tiddler, collection_uri, data);
-                    wikifiers[collection_uri] = globals;
-                    var output = processData(store, tiddlerTitle, wikify);
-                    emitter.emit('output', output);
-                });
+                if (response.statusCode == '302' && response.headers['location'].indexOf('/challenge')) {
+                    emitter.emit('output', 'Error getting collection: challenger.');
+                } else {
+                    response.setEncoding('utf8');
+                    var data = '';
+                    response.on('data', function(chunk) {
+                        data += chunk;
+                    });
+                    response.on('end', function() {
+                        twik.loadRemoteTiddlers(store, Tiddler, collection_uri, data);
+                        wikifiers[collection_uri] = globals;
+                        var output = processData(store, tiddlerTitle, wikify);
+                        emitter.emit('output', output);
+                    });
+                }
+                    
         });
         return emitter;
     } else {

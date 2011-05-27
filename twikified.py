@@ -20,6 +20,7 @@ try:
 except ImportError:
     from StringIO import StringIO
 
+import Cookie
 import socket
 
 from tiddlywebplugins.atom.htmllinks import Serialization as HTMLSerialization
@@ -46,11 +47,21 @@ def render(tiddler, environ):
         collection = recipe_url(environ, Recipe(tiddler.recipe)) + '/tiddlers'
     else:
         collection = bag_url(environ, Bag(tiddler.bag)) + '/tiddlers'
+
+    try:
+        user_cookie = environ['HTTP_COOKIE']
+        cookie = Cookie.SimpleCookie()
+        cookie.load(user_cookie)
+        tiddlyweb_cookie = 'tiddlyweb_user=' + cookie['tiddlyweb_user'].value
+    except KeyError:
+        tiddlyweb_cookie = ''
+
     socket_path = environ['tiddlyweb.config'].get('twikified.socket',
             '/tmp/wst.sock')
     twik_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     twik_socket.connect('/tmp/wst.sock')
-    twik_socket.sendall('%s\x00%s\n' % (collection, tiddler.title))
+    twik_socket.sendall('%s\x00%s\x00%s\n' % (collection, tiddler.title, tiddlyweb_cookie))
+
     output = ''
     try:
         while True:
