@@ -49,7 +49,14 @@ def render(tiddler, environ):
     socket_path = environ['tiddlyweb.config'].get('twikified.socket',
             '/tmp/wst.sock')
     twik_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    twik_socket.connect('/tmp/wst.sock')
+    try:
+      twik_socket.connect('/tmp/wst.sock')
+    except IOError:
+      output = """
+      <div class='error'>There was a problem rendering this tiddler. The raw text is given instead below.</div>
+      <pre class='wikitext'>%s</pre>
+      """%(escape_attribute_value(tiddler.text))
+      return output
     twik_socket.sendall('%s\x00%s\n' % (collection, tiddler.title))
     output = ''
     try:
