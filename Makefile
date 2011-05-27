@@ -10,7 +10,7 @@ cat: get tsp
 	cat TwikifierBase.js $(TWREMOTES) TiddlySpaceLinkPlugin.js TwikifierEnd.js > twikifier.js
 
 clean:
-	rm -f $(TWREMOTES) twikifier.js
+	rm -f $(TWREMOTES) $(SPACELINK) twikifier.js
 	find . -name "*.pyc" | xargs rm || true
 	rm tiddlyweb.log || true
 	rm -r store || true
