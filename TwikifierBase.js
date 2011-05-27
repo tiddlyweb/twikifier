@@ -11,9 +11,6 @@ var version = {
     extensions: {}
 };
 
-// config.js won't process without a navigator
-var navigator = { userAgent: "twikifier" };  
-
 // XXX TiddlyWiki requires a document global, rather than
 // being passed that document in startup.
 var document = window.document;
@@ -36,8 +33,3 @@ function alert(e) {
 
 // for lingo.js to work
 function saveChanges(onlyIfDirty,tiddlers) { return; }
-
-// copied from Dom.js
-function addClass(e,className) {
-    jQuery(e).addClass(className);
-}

@@ -3,7 +3,7 @@ Serialization that uses twikifier to render.
 
 It can render in two ways. If config['twikified.render'] is
 True, the default, then rendering will be done serverside
-with a nodje.js based socket servey. Otherwise rendering will be
+with a nodje.js based socket server. Otherwise rendering will be
 delegated to the client.
 
 The socket is at config['twikified.socket'], '/tmp/wst.sock' by

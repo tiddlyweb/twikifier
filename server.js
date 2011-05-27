@@ -4,8 +4,8 @@ var jsdom = require('jsdom');
 var jquery = require('jquery');
 var http = require('http');
 var url = require('url');
-var twikifier = require('twikifier');
-var twik = require('twik');
+var twikifier = require('./twikifier');
+var twik = require('./twik');
 
 var Emitter = require('events').EventEmitter;
 
