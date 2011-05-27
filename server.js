@@ -23,8 +23,8 @@ var window = jsdom.jsdom(
 // jquery-ize the window
 var jQuery = jquery.create(window);
 
-var formatText = function(place, wikify, text) {
-    wikify(text, place, null, null);
+var formatText = function(place, wikify, text, tiddler) {
+    wikify(text, place, null, tiddler);
     return place.innerHTML;
 }
 
@@ -32,7 +32,7 @@ var processData = function(store, tiddlerTitle, wikify) {
     tiddler = store.fetchTiddler(tiddlerTitle);
     place = jQuery("<div id='" + tiddlerTitle + "'>");
     place.appendTo('body');
-    var output = formatText(place[0], wikify, tiddler.text);
+    var output = formatText(place[0], wikify, tiddler.text, tiddler);
     place.remove();
     return output;
 }
