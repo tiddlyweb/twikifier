@@ -1,6 +1,6 @@
 
 # The required pieces of code from the TiddlyWiki core.
-TWREMOTES = BasicTypes.js Strings.js Config.js FormatterHelpers.js Formatter.js Tiddler.js TiddlyWiki.js Utilities.js TiddlerFields.js Wikifier.js Macros.js Dates.js Lingo.js
+TWREMOTES = BasicTypes.js Strings.js Config.js Filters.js FormatterHelpers.js Formatter.js Tiddler.js TiddlyWiki.js Utilities.js TiddlerFields.js Wikifier.js Macros.js Dates.js Lingo.js
 SPACELINK = http://svn.tiddlywiki.org/Trunk/contributors/PaulDowney/plugins/TiddlySpaceLinkPlugin/TiddlySpaceLinkPlugin.js
 
 TESTERS := $(wildcard test/*.txt)
