@@ -26,6 +26,11 @@ var story = {
     findContainingTiddler: function(e) { return e; }
 };
 
+// XXX the highlightHack variable is used by the function 
+// highlightify which is rather irrelevant in this context
+// annoyingly it is used in Story.js and Macros.js but defined in main.js
+var highlightHack = null;
+
 // provide a stubbed alert in case something calls it
 function alert(e) {
     console.log(e);
