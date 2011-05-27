@@ -10,7 +10,7 @@ var memcached = require('memcached');
 var hashlib = require('hashlib');
 var uuid = require('node-uuid');
 
-var memcache = new memcached('127.0.0.1:11211');
+var memcache = new memcached('127.0.0.1:11211', {remove: true});
 
 var Emitter = require('events').EventEmitter;
 
@@ -48,74 +48,86 @@ var processRequest = function(args) {
     var emitter = new Emitter();
     var namespace = hashlib.sha1('any_namespace');
     memcache.get(namespace, function(err, result) {
-            if (err) console.error(err);
+        if (err) {
+            console.error(err);
+            emitter.emit('output', 'Error getting namespace key ' + err);
+        } else {
             console.log('getting namespace');
             if (!result) {
                 result = uuid();
                 console.log('resetting the any namespace');
-                memcache.set(namespace, result, 999999, function(err, result) {
+                memcache.set(namespace, result, 0, function(err, result) {
                     if (err) console.error(err);
-                    return processRequest(args);
+                    if (result) {
+                        return processRequest(args);
+                    } else {
+                        emitter.emit('output', 'Memcache server not present');
+                    }
                 });
             } else {
+                memcacheKey = hashlib.sha1(result + collection_uri);
+                console.log('getting ' + memcacheKey);
+                memcache.get(memcacheKey, function(err, result) {
+                    if (err) {
+                        console.error(err);
+                        emitter.emit('output', 'Error getting collection key ' + err);
+                    } else {
+                        var data = result;
+                        console.log('got for', memcacheKey);
 
-            memcacheKey = hashlib.sha1(result + collection_uri);
-            console.log('getting ' + memcacheKey);
-            memcache.get(memcacheKey, function(err, result) {
-                if (err) console.error(err);
-                var data = result;
-                console.log('got for', memcacheKey);
+                        var globals, wikify, store, Tiddler;
+                        globals = twikifier.createWikifier(window, jQuery);
+                        wikify = globals[0];
+                        store = globals[1];
+                        Tiddler = globals[2];
 
-                var globals, wikify, store, Tiddler;
-                globals = twikifier.createWikifier(window, jQuery);
-                wikify = globals[0];
-                store = globals[1];
-                Tiddler = globals[2];
+                        if (!data) {
+                            console.log('not using cache for', collection_uri);
+                            var parsed_uri = url.parse(collection_uri);
 
-                if (!data) {
-                    console.log('not using cache for', collection_uri);
-                    var parsed_uri = url.parse(collection_uri);
-
-                    var client = http.createClient(parsed_uri.port ? parsed_uri.port : 80,
-                            parsed_uri.hostname);
-                    var request = client.request('GET', parsed_uri.pathname + '?fat=1',
-                            {'host': parsed_uri.hostname,
-                            'accept': 'application/json',
-                            'cookie': tiddlyweb_cookie});
-                    request.on('error', function(err) {
-                        emitter.emit('output', 'Error getting collection: ' + err);
-                    });
-                    request.end();
-                    request.on('response', function(response) {
-                            if (response.statusCode == '302' && response.headers['location'].indexOf('/challenge')) {
-                                emitter.emit('output', 'Error getting collection: challenger.');
-                            } else {
-                                response.setEncoding('utf8');
-                                var content = '';
-                                response.on('data', function(chunk) {
-                                    content += chunk;
-                                });
-                                response.on('end', function() {
-                                    twik.loadRemoteTiddlers(store, Tiddler, collection_uri, content);
-                                    var output = processData(store, tiddlerTitle, wikify);
-                                    emitter.emit('output', output);
-                                    memcache.set(memcacheKey, content, 0, function(err, result) {
-                                        if (err) console.error(err);
-                                    });
-                                });
-                            }
-                                
-                    });
-                    return emitter;
-                } else {
-                    console.log('using cache for', collection_uri);
-                    twik.loadRemoteTiddlers(store, Tiddler, collection_uri, data);
-                    var output = processData(store, tiddlerTitle, wikify);
-                    emitter.emit('output', output);
-                }
-
-            });
+                            var client = http.createClient(parsed_uri.port ? parsed_uri.port : 80,
+                                    parsed_uri.hostname);
+                            var request = client.request('GET', parsed_uri.pathname + '?fat=1',
+                                    {'host': parsed_uri.hostname,
+                                    'accept': 'application/json',
+                                    'cookie': tiddlyweb_cookie});
+                            request.end();
+                            request.on('error', function(err) {
+                                emitter.emit('output', 'Error getting collection: ' + err);
+                            });
+                            request.on('response', function(response) {
+                                    if (response.statusCode == '302' && response.headers['location'].indexOf('/challenge')) {
+                                        emitter.emit('output', 'Error getting collection: challenger.');
+                                    } else {
+                                        response.setEncoding('utf8');
+                                        var content = '';
+                                        response.on('data', function(chunk) {
+                                            content += chunk;
+                                        });
+                                        response.on('end', function() {
+                                            twik.loadRemoteTiddlers(store, Tiddler, collection_uri, content);
+                                            var output = processData(store, tiddlerTitle, wikify);
+                                            memcache.set(memcacheKey, content, 0, function(err, result) {
+                                                if (err) console.error(err);
+                                            });
+                                            emitter.emit('output', output);
+                                        });
+                                    }
+                                        
+                            });
+                            return emitter;
+                        } else {
+                            console.log('using cache for', collection_uri);
+                            twik.loadRemoteTiddlers(store, Tiddler, collection_uri, data);
+                            var output = processData(store, tiddlerTitle, wikify);
+                            emitter.emit('output', output);
+                        }
+                    }
+                });
             }
+            console.log('and then');
+        }
+        console.log('and then2');
     });
     return emitter;
 }
