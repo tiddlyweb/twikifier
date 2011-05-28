@@ -6,12 +6,17 @@ True, the default, then rendering will be done serverside
 with a nodje.js based socket server. Otherwise rendering will be
 delegated to the client.
 
+If config['twikified.serializer'] is True (the default is False)
+use this code as a serialization, not just a renderer. Whether
+rendering is done by the serialization server side or client side
+is controlled by twikified.render.
+
 The socket is at config['twikified.socket'], '/tmp/wst.sock' by
-default. Running the server is up to the installer at this point.
+default. Running the server is up to the human installer at this point.
 
 If client side rendering is used, then a bunch of javascript is
 expected to be found in config['twikified.container'], defaulting
-to '/bags/common/tiddlers/'. The installer is expected to get the
+to '/bags/common/tiddlers/'. The human installer is expected to get the
 right tiddlers in the right place (for now).
 """
 
@@ -38,8 +43,10 @@ SERIALIZERS = {
 
 
 def init(config):
-    config['serializers'].update(SERIALIZERS)
-    config['wikitext.default_renderer'] = 'twikified'
+    if config.get('twikified.serializer', False):
+        config['serializers'].update(SERIALIZERS)
+    if config.get('twikified.render', True):
+        config['wikitext.default_renderer'] = 'twikified'
 
 
 def render(tiddler, environ):
