@@ -1,26 +1,22 @@
-
 var net = require('net');
 var jsdom = require('jsdom');
 var jquery = require('jquery');
 var http = require('http');
 var url = require('url');
-var twikifier = require('./twikifier');
-var twik = require('./twik');
 var memcached = require('memcached');
 var hashlib = require('hashlib');
 var uuid = require('node-uuid');
-
+var twikifier = require('./twikifier');
+var twik = require('./twik');
 
 var Emitter = require('events').EventEmitter;
-
 var server = net.createServer();
-
 var wikifiers = {};
 
 var window = jsdom.jsdom(
         '<html><head></head><body></body></html>').createWindow(); 
-// jquery-ize the window
-var jQuery = jquery.create(window);
+
+var jQuery = jquery.create(window); // jquery-ize the window
 
 var formatText = function(place, wikify, text, tiddler) {
     wikify(text, place, null, tiddler);
@@ -69,7 +65,8 @@ var processRequest = function(args) {
                         if (result) {
                             return processRequest(args);
                         } else {
-                            getData(memcache, collection_uri, tiddlyweb_cookie, emitter, store,
+                            getData(memcache, collection_uri,
+                                tiddlyweb_cookie, emitter, store,
                                 Tiddler, tiddlerTitle, wikify, false);
                             
                         }
@@ -79,15 +76,21 @@ var processRequest = function(args) {
                     memcache.get(memcacheKey, function(err, result) {
                         if (err) {
                             console.error(err);
-                            emitter.emit('output', 'Error getting collection key ' + err);
+                            emitter.emit('output',
+                                'Error getting collection key ' + err);
                         } else {
                             var data = result;
                             if (!data) {
-                                getData(memcache, collection_uri, tiddlyweb_cookie, emitter, store,
-                                    Tiddler, tiddlerTitle, wikify, memcacheKey);
+                                getData(memcache, collection_uri,
+                                    tiddlyweb_cookie, emitter, store, Tiddler,
+                                    tiddlerTitle, wikify, memcacheKey);
                             } else {
-                                useData(data, collection_uri, tiddlyweb_cookie, emitter, store,
-                                    Tiddler, tiddlerTitle, wikify, memcacheKey);
+                                console.log('using cache for', collection_uri);
+                                twik.loadRemoteTiddlers(store, Tiddler,
+                                    collection_uri, data);
+                                var output = processData(store, tiddlerTitle,
+                                    wikify);
+                                emitter.emit('output', output);
                             }
                         }
                     });
@@ -98,14 +101,8 @@ var processRequest = function(args) {
     return emitter;
 }
 
-var useData = function(data, collection_uri, tiddlyweb_cookie, emitter, store, Tiddler, tiddlerTitle, wikify, memcacheKey) {
-    console.log('using cache for', collection_uri);
-    twik.loadRemoteTiddlers(store, Tiddler, collection_uri, data);
-    var output = processData(store, tiddlerTitle, wikify);
-    emitter.emit('output', output);
-}
-
-var getData = function(memcache, collection_uri, tiddlyweb_cookie, emitter, store, Tiddler, tiddlerTitle, wikify, memcacheKey) {
+var getData = function(memcache, collection_uri, tiddlyweb_cookie,
+        emitter, store, Tiddler, tiddlerTitle, wikify, memcacheKey) {
     console.log('not using cache for', collection_uri);
     var parsed_uri = url.parse(collection_uri);
 
@@ -120,7 +117,8 @@ var getData = function(memcache, collection_uri, tiddlyweb_cookie, emitter, stor
         emitter.emit('output', 'Error getting collection: ' + err);
     });
     request.on('response', function(response) {
-        if (response.statusCode == '302' && response.headers['location'].indexOf('/challenge')) {
+        if (response.statusCode == '302' &&
+            response.headers['location'].indexOf('/challenge')) {
             emitter.emit('output', 'Error getting collection: challenger.');
         } else {
             response.setEncoding('utf8');
@@ -130,9 +128,7 @@ var getData = function(memcache, collection_uri, tiddlyweb_cookie, emitter, stor
             });
             response.on('end', function() {
                 if (typeof memcache !== 'undefined' && memcacheKey) {
-                    memcache.set(memcacheKey, content, 0, function(err, result) {
-                        if (err) console.error(err);
-                    });
+                    memcache.set(memcacheKey, content, 0, function() {});
                 }
                 twik.loadRemoteTiddlers(store, Tiddler, collection_uri, content);
                 var output = processData(store, tiddlerTitle, wikify);
@@ -160,4 +156,3 @@ server.addListener('connection', function(c) {
 });
 
 server.listen('/tmp/wst.sock');
-
