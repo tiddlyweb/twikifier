@@ -1,26 +1,24 @@
 /*jslint unparam: true, indent: 4, node: true */
 
-var net = require('net');
-var jsdom = require('jsdom');
-var jquery = require('jquery');
-var http = require('http');
-var url = require('url');
-var Memcached = require('memcached');
-var hashlib = require('hashlib');
-var uuid = require('node-uuid');
-var twikifier = require('./twikifier');
-var twik = require('./twik');
+var net = require('net'),
+    jsdom = require('jsdom'),
+    jquery = require('jquery'),
+    http = require('http'),
+    url = require('url'),
+    Memcached = require('memcached'),
+    hashlib = require('hashlib'),
+    uuid = require('node-uuid'),
+    twikifier = require('./twikifier'),
+    twik = require('./twik');
 
-var Emitter = require('events').EventEmitter;
-var server = net.createServer();
-var wikifiers = {};
+var Emitter = require('events').EventEmitter,
+    server = net.createServer(),
+    wikifiers = {},
+    getData;
 
 var window = jsdom.jsdom('<html><head></head><body></body></html>')
         .createWindow();
-
 var jQuery = jquery.create(window); // jQuery-ize the window
-
-var getData;
 
 var formatText = function(place, wikify, text, tiddler) {
     wikify(text, place, null, tiddler);
@@ -37,21 +35,18 @@ var processData = function(store, tiddlerTitle, wikify) {
 };
 
 var processRequest = function(args) {
-    var collection_uri = args[0];
-    var tiddlerTitle = args[1];
-    var tiddlyweb_cookie = '';
-    if (args.length > 2) {
-        tiddlyweb_cookie = args[2];
-    }
+    var collection_uri = args[0],
+        tiddlerTitle = args[1],
+        tiddlyweb_cookie = args[2] || '';
 
-    var memcache = new Memcached('127.0.0.1:11211');
-    var emitter = new Emitter();
-    var namespace = hashlib.sha1('any_namespace');
-    var globals, wikify, store, Tiddler;
-    globals = twikifier.createWikifier(window, jQuery);
-    wikify = globals[0];
-    store = globals[1];
-    Tiddler = globals[2];
+    var memcache = new Memcached('127.0.0.1:11211'),
+        emitter = new Emitter(),
+        namespace = hashlib.sha1('any_namespace'),
+        globals = twikifier.createWikifier(window, jQuery);
+
+    var wikify = globals[0],
+        store = globals[1],
+        Tiddler = globals[2];
 
     if (!memcache) {
         getData(memcache, collection_uri, tiddlyweb_cookie, emitter, store,
@@ -147,8 +142,7 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
 
 server.addListener('connection', function(c) {
     c.addListener('data', function(data) {
-        var dataString = data.toString();
-        dataString = dataString.replace(/(\r|\n)+$/, '');
+        var dataString = data.toString().replace(/(\r|\n)+$/, '');
         var args = dataString.split(/\x00/);
         console.log(args);
         var output = processRequest(args);
