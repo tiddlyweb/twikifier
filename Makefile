@@ -6,11 +6,11 @@ SPACELINK = http://svn.tiddlywiki.org/Trunk/contributors/PaulDowney/plugins/Tidd
 TESTERS := $(wildcard test/*.txt)
 ASSERTS := $(wildcard test/*.js)
 
-cat: get tsp
+cat: get 
 	cat TwikifierBase.js $(TWREMOTES) TiddlySpaceLinkPlugin.js TwikifierEnd.js > twikifier.js
 
 clean:
-	rm -f $(TWREMOTES) $(SPACELINK) twikifier.js
+	rm -f $(TWREMOTES) TiddlySpaceLinkPlugin.js twikifier.js
 	find . -name "*.pyc" | xargs rm || true
 	rm tiddlyweb.log || true
 	rm -r store || true
@@ -18,7 +18,7 @@ clean:
 tsp:
 	curl -o TiddlySpaceLinkPlugin.js $(SPACELINK)
 
-get: $(TWREMOTES)
+get: $(TWREMOTES) tsp
 
 %.js:
 	curl -o $*.js https://github.com/TiddlyWiki/tiddlywiki/raw/master/js/$*.js
