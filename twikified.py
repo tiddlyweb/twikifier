@@ -75,7 +75,9 @@ def render(tiddler, environ):
       <pre class='wikitext'>%s</pre>
       """%(escape_attribute_value(tiddler.text))
       return output
-    twik_socket.sendall('%s\x00%s\x00%s\n' % (collection, tiddler.title, tiddlyweb_cookie))
+    twik_socket.sendall('%s\x00%s\x00%s\n' % (collection,
+        tiddler.title.encode('utf-8', 'replace'),
+        tiddlyweb_cookie))
     output = ''
     try:
         while True:
