@@ -38,3 +38,6 @@ function alert(e) {
 
 // for lingo.js to work
 function saveChanges(onlyIfDirty,tiddlers) { return; }
+
+// config.browser (used in FormatterHelpers) requires navigator
+var navigator = { userAgent: "twikifier" };  
