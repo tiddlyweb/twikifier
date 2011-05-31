@@ -22,7 +22,7 @@ function createTiddlyError(place, msg, details) {
 	jQuery(place).append("<!-- " + msg + "\n" + details + " -->");
 }
 
-// override createspace link
+// override createSpaceLink
 function createSpaceLink(place, spaceName, title, alt, isBag) {
     var link, a;
     // XXX this needs to come from config or parameters
