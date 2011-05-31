@@ -3,14 +3,6 @@ var createWikifier = function(window, jQuery) {
 
 /*** psuedo-globals required to get rolling ***/
 
-// the version macro needs this
-var version = {
-    major: 0,
-    minor: 1,
-    revision: 0,
-    extensions: {}
-};
-
 // XXX TiddlyWiki requires a document global, rather than
 // being passed that document in startup.
 var document = window.document;
