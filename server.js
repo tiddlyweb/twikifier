@@ -1,5 +1,3 @@
-#!/usr/local/bin/node
-
 /*jslint unparam: true, indent: 4, node: true */
 
 var net = require('net'),
