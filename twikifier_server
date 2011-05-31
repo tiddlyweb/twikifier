@@ -7,4 +7,4 @@ NODE_BIN=/usr/local/bin/node
 
 set -e
 
-sudo -u $USER $NODE_BIN $DAEMON | logger -p syslog.info -t twikifier
+sudo -u $USER $NODE_BIN $DAEMON 2>&1 | logger -p syslog.info -t twikifier
