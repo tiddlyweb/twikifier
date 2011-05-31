@@ -17,8 +17,6 @@ function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromT
 	return btn;
 }
 
-
-
 // messages required for invokeMacro
 function createTiddlyError(place, msg, details) {
 	jQuery(place).append("<!-- " + msg + "\n" + details + " -->");
