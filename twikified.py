@@ -35,6 +35,7 @@ from tiddlyweb.model.recipe import Recipe
 from tiddlyweb.web.util import (escape_attribute_value, html_encode,
         encode_name, recipe_url, bag_url)
 
+REVISION_RENDERER = 'tiddlywebplugins.wikklytextrender'
 
 SERIALIZERS = {
     'text/html': ['twikified', 'text/html; charset=UTF-8'],
@@ -50,6 +51,9 @@ def init(config):
 
 
 def render(tiddler, environ):
+    if tiddler.revision and tiddler.revision != 0:
+        return _render_revision(tiddler, environ)
+
     if tiddler.recipe:
         collection = recipe_url(environ, Recipe(tiddler.recipe)) + '/tiddlers'
     else:
@@ -89,6 +93,15 @@ def render(tiddler, environ):
     finally:
         twik_socket.close()
     return output.decode('UTF-8')
+
+
+def _render_revision(tiddler, environ):
+    """
+    Fall back to a simpler renderer to deal with rendering revisions.
+    twikifier doesn't currently care about revisions.
+    """
+    renderer = __import__(REVISION_RENDERER, {}, {}, ['render'])
+    return renderer.render(tiddler, environ)
 
 
 class Serialization(HTMLSerialization):
