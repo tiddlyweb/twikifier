@@ -33,7 +33,7 @@ from tiddlywebplugins.atom.htmllinks import Serialization as HTMLSerialization
 from tiddlyweb.model.bag import Bag
 from tiddlyweb.model.recipe import Recipe
 from tiddlyweb.web.util import (escape_attribute_value, html_encode,
-        encode_name, recipe_url, bag_url)
+        encode_name, recipe_url, bag_url, get_route_value)
 
 REVISION_RENDERER = 'tiddlywebplugins.wikklytextrender'
 
@@ -51,8 +51,12 @@ def init(config):
 
 
 def render(tiddler, environ):
-    if tiddler.revision and tiddler.revision != 0:
+    try:
+        # If this is a revision view, use REVISION_RENDERER.
+        get_route_value(environ, 'revision')
         return _render_revision(tiddler, environ)
+    except KeyError:
+        pass
 
     if tiddler.recipe:
         collection = recipe_url(environ, Recipe(tiddler.recipe)) + '/tiddlers'
