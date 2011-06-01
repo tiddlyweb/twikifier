@@ -34,16 +34,16 @@ var processData = function(store, tiddlerTitle, wikify) {
     return output;
 };
 
-var processRequest = function(args) {
+var processRequest = function(args, emitter) {
+    emitter = emitter || new Emitter();
+
     var collection_uri = args[0],
         tiddlerTitle = args[1],
         tiddlyweb_cookie = args[2] || '';
 
     var memcache = new Memcached('127.0.0.1:11211'),
-        emitter = new Emitter(),
         namespace = hashlib.sha1('any_namespace'),
         globals = twikifier.createWikifier(window, jQuery);
-
     var wikify = globals[0],
         store = globals[1],
         Tiddler = globals[2];
@@ -64,7 +64,7 @@ var processRequest = function(args) {
                             console.error(err);
                         }
                         if (result) {
-                            return processRequest(args);
+                            return processRequest(args, emitter);
                         } else {
                             getData(memcache, collection_uri,
                                 tiddlyweb_cookie, emitter, store,
