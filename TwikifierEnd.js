@@ -17,6 +17,17 @@ function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromT
 	return btn;
 }
 
+// clobber creatTagButton
+
+function createTagButton(place,tag,excludeTiddler,title,tooltip)
+{
+    var taglink = serverOptions.container ?
+        serverOptions.container + '?select=tag:' + encodeURIComponent(tag)
+        : "/search?q=tag:" + encodeURIComponent(tag);
+    var btn = createExternalLink(place, taglink, tag);
+    return btn;
+}
+
 // messages required for invokeMacro
 function createTiddlyError(place, msg, details) {
 	jQuery(place).append("<!-- " + msg + "\n" + details + " -->");
@@ -26,7 +37,7 @@ function createTiddlyError(place, msg, details) {
 function createSpaceLink(place, spaceName, title, alt, isBag) {
     var link, a;
     // XXX this needs to come from config or parameters
-    link = "http://tiddlyspace.com";
+    link = serverOptions.host;
 
     // assumes a http URI without user:pass@ prefix
     link = link.replace("http://", "http://" + spaceName.toLowerCase() + ".");

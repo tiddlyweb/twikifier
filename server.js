@@ -42,7 +42,8 @@ var processRequest = function(args) {
     var memcache = new Memcached('127.0.0.1:11211'),
         emitter = new Emitter(),
         namespace = hashlib.sha1('any_namespace'),
-        globals = twikifier.createWikifier(window, jQuery);
+        globals = twikifier.createWikifier(window, jQuery,
+                {container: collection_uri});
 
     var wikify = globals[0],
         store = globals[1],

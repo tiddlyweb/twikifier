@@ -37,7 +37,7 @@
         var useCache = false;
         var globals, wikify, store, Tiddler;
         if (wikifiers[collection_uri] === undefined) {
-            globals = createWikifier(window, $);
+            globals = createWikifier(window, $, {container: collection_uri});
             wikifiers[collection_uri] = globals;
         } else {
             globals = wikifiers[collection_uri];

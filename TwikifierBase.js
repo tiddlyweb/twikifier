@@ -1,5 +1,13 @@
 // create a function scope (this is closed in another file)
-var createWikifier = function(window, jQuery) {
+var createWikifier = function(window, jQuery, passedServerOptions) {
+    var serverOptions = {
+        'host': 'http://tiddlyspace.com',
+        'container': null,
+    }
+    if (typeof passedServerOptions === 'undefed') {
+        passedServerOptions = {};
+    }
+    jQuery.extend(serverOptions, passedServerOptions);
 
 /*** psuedo-globals required to get rolling ***/
 
