@@ -159,7 +159,6 @@ server.addListener('connection', function(c) {
     c.addListener('data', function(data) {
         var dataString = data.toString().replace(/(\r|\n)+$/, '');
         var args = dataString.split(/\x00/);
-        console.log(args);
         var output = processRequest(args);
         if (typeof output === "string") {
             c.end(output);
