@@ -54,6 +54,7 @@ function createSpaceLink(place, spaceName, title, alt, isBag) {
 }
 
 config.options.chkOpenInNewWindow = false;
+config.evaluateMacroParameters = 'none';
 
 return [wikify, store, Tiddler];
 }
