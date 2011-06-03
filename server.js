@@ -55,7 +55,8 @@ var processRequest = function(args, emitter) {
         tiddlerTitle = args[1],
         tiddlyweb_cookie = args[2] || '',
         memcache = new Memcached('127.0.0.1:11211'),
-        globals = twikifier.createWikifier(window, jQuery),
+        globals = twikifier.createWikifier(window, jQuery,
+                {container: collection_uri}),
         namespace = getNamespace(collection_uri),
         wikify = globals[0],
         store = globals[1],
@@ -158,7 +159,6 @@ server.addListener('connection', function(c) {
     c.addListener('data', function(data) {
         var dataString = data.toString().replace(/(\r|\n)+$/, '');
         var args = dataString.split(/\x00/);
-        console.log(args);
         var output = processRequest(args);
         if (typeof output === "string") {
             c.end(output);
