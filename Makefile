@@ -16,12 +16,12 @@ clean:
 	rm -r store || true
 
 tsp:
-	curl -o TiddlySpaceLinkPlugin.js $(SPACELINK)
+	curl -Lo TiddlySpaceLinkPlugin.js $(SPACELINK)
 
 get: $(TWREMOTES) tsp
 
 %.js:
-	curl -o $*.js https://github.com/TiddlyWiki/tiddlywiki/raw/master/js/$*.js
+	curl -Lo $*.js https://github.com/TiddlyWiki/tiddlywiki/raw/master/js/$*.js
 
 build: cat
 	
