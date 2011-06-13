@@ -8,13 +8,13 @@ var formatter = new Formatter(config.formatters);
 //clobber createTiddlyLink
 function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromTiddler,noToggle)
 {
-	var text = includeText ? title : null;
-	var i = getTiddlyLinkInfo(title,className);
+        var text = includeText ? title : null;
+        var i = getTiddlyLinkInfo(title,className);
         var urlString = store.getTiddlerText("SiteUrl");
-        var linktext = urlString ? urlString.format([title]) : title;
-	var btn = createExternalLink(place, linktext, text);
+        var linktext = urlString ? urlString + '/' + title : title;
+        var btn = createExternalLink(place, linktext, text);
         btn.className += ' ' + className;
-	return btn;
+        return btn;
 }
 
 // clobber creatTagButton

@@ -27,7 +27,7 @@ twik.loadRemoteTiddlers = function(store, Tiddler, uri, jsonTiddlers) {
         store.addTiddler(t);
     }
     storeURL = new Tiddler('SiteUrl');
-    storeURL.text = uri + '/%0';
+    storeURL.text = uri;
     store.addTiddler(storeURL);
 }
 
