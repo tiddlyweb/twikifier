@@ -134,7 +134,7 @@ def render(tiddler, environ):
         output = dom.childNodes[0].toxml()
     except ExpatError:
         pass
-    return output
+    return output.decode('UTF-8', 'replace')
 
 
 def _render_revision(tiddler, environ):
