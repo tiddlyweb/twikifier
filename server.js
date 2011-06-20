@@ -39,7 +39,7 @@ var getNamespace = function(uri) {
     var match = /\/(bags|recipes)\/([^\/]+)/.exec(uri),
         namespace;
 
-    if (match[1] === 'recipes') {
+    if (!match || match[1] === 'recipes') {
         namespace = 'any_namespace';
     } else {
         namespace = match[1] + ':' + match[2] + '_namespace';
