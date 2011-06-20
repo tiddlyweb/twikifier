@@ -12,7 +12,7 @@ var net = require('net'),
     twik = require('./twik');
 
 var Emitter = require('events').EventEmitter,
-    server = net.createServer(),
+    server = net.createServer({allowHalfOpen: true}),
     wikifiers = {},
     getData;
 
@@ -155,7 +155,11 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
 };
 
 server.addListener('connection', function(c) {
-    c.addListener('data', function(data) {
+    var data = '';
+    c.addListener('data', function(chunk) {
+        data += chunk;
+    });
+    c.addListener('end', function() {
         var dataString = data.toString().replace(/(\r|\n)+$/, '');
         var args = dataString.split(/\x00/);
         var output = processRequest(args);

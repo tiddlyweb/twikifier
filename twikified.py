@@ -91,6 +91,7 @@ def render(tiddler, environ):
     twik_socket.sendall('%s\x00%s\x00%s\n' % (collection,
         tiddler.text.encode('utf-8', 'replace'),
         tiddlyweb_cookie))
+    twik_socket.shutdown(socket.SHUT_WR)
     output = ''
     try:
         while True:
