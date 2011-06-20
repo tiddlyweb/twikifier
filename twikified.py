@@ -28,10 +28,14 @@ except ImportError:
 import Cookie
 import socket
 
+from xml.dom import minidom
+
 from tiddlywebplugins.atom.htmllinks import Serialization as HTMLSerialization
 
+from tiddlyweb.store import StoreError
 from tiddlyweb.model.bag import Bag
 from tiddlyweb.model.recipe import Recipe
+from tiddlyweb.model.tiddler import Tiddler
 from tiddlyweb.web.util import (escape_attribute_value, html_encode,
         encode_name, recipe_url, bag_url, get_route_value)
 
@@ -84,7 +88,7 @@ def render(tiddler, environ):
       """%(escape_attribute_value(tiddler.text))
       return output
     twik_socket.sendall('%s\x00%s\x00%s\n' % (collection,
-        tiddler.title.encode('utf-8', 'replace'),
+        tiddler.text.encode('utf-8', 'replace'),
         tiddlyweb_cookie))
     output = ''
     try:
@@ -96,6 +100,35 @@ def render(tiddler, environ):
                 break
     finally:
         twik_socket.close()
+
+    # process for transclusions
+    seen_titles = []
+    dom = minidom.parseString('<div>'
+            + output.replace('<br>', '<br/>')
+            + '</div>')
+    spans = dom.getElementsByTagName('span')
+    for span in spans:
+        for attribute in span.attributes.keys():
+            if attribute == 'tiddler':
+                attr = span.attributes[attribute]
+                interior_title = attr.value
+                if interior_title not in seen_titles:
+                    interior_tiddler = Tiddler(interior_title)
+                    interior_tiddler.bag = tiddler.bag
+                    try:
+                        interior_tiddler = environ['tiddlyweb.store'].get(
+                                interior_tiddler)
+                    except StoreError:
+                        continue
+                    if tiddler.recipe:
+                        interior_tiddler.recipe = tiddler.recipe
+                    interior_content = render(interior_tiddler, environ)
+                    interior_dom = minidom.parseString(
+                            interior_content.replace('<br>', '<br/>'))
+                    span.appendChild(interior_dom.childNodes[0])
+                seen_titles.append(interior_title)
+
+    output = dom.childNodes[0].toxml()
     return output.decode('UTF-8')
 
 
@@ -148,7 +181,6 @@ class Serialization(HTMLSerialization):
         return tiddler_div + scripts
 
     def _text(self, tiddler):
-        print tiddler.type
         if not tiddler.type or tiddler.type == 'None':
             return html_encode(tiddler.text)
         return ''
