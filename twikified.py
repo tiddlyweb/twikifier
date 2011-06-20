@@ -29,6 +29,7 @@ import Cookie
 import socket
 
 from xml.dom import minidom
+from xml.parsers.expat import ExpatError
 
 from tiddlywebplugins.atom.htmllinks import Serialization as HTMLSerialization
 
@@ -102,33 +103,36 @@ def render(tiddler, environ):
         twik_socket.close()
 
     # process for transclusions
-    seen_titles = []
-    dom = minidom.parseString('<div>'
-            + output.replace('<br>', '<br/>')
-            + '</div>')
-    spans = dom.getElementsByTagName('span')
-    for span in spans:
-        for attribute in span.attributes.keys():
-            if attribute == 'tiddler':
-                attr = span.attributes[attribute]
-                interior_title = attr.value
-                if interior_title not in seen_titles:
-                    interior_tiddler = Tiddler(interior_title)
-                    interior_tiddler.bag = tiddler.bag
-                    try:
-                        interior_tiddler = environ['tiddlyweb.store'].get(
-                                interior_tiddler)
-                    except StoreError:
-                        continue
-                    if tiddler.recipe:
-                        interior_tiddler.recipe = tiddler.recipe
-                    interior_content = render(interior_tiddler, environ)
-                    interior_dom = minidom.parseString(
-                            interior_content.replace('<br>', '<br/>'))
-                    span.appendChild(interior_dom.childNodes[0])
-                seen_titles.append(interior_title)
+    try:
+        seen_titles = []
+        dom = minidom.parseString('<div>'
+                + output.replace('<br>', '<br/>')
+                + '</div>')
+        spans = dom.getElementsByTagName('span')
+        for span in spans:
+            for attribute in span.attributes.keys():
+                if attribute == 'tiddler':
+                    attr = span.attributes[attribute]
+                    interior_title = attr.value
+                    if interior_title not in seen_titles:
+                        interior_tiddler = Tiddler(interior_title)
+                        interior_tiddler.bag = tiddler.bag
+                        try:
+                            interior_tiddler = environ['tiddlyweb.store'].get(
+                                    interior_tiddler)
+                        except StoreError:
+                            continue
+                        if tiddler.recipe:
+                            interior_tiddler.recipe = tiddler.recipe
+                        interior_content = render(interior_tiddler, environ)
+                        interior_dom = minidom.parseString(
+                                interior_content.replace('<br>', '<br/>'))
+                        span.appendChild(interior_dom.childNodes[0])
+                    seen_titles.append(interior_title)
 
-    output = dom.childNodes[0].toxml()
+        output = dom.childNodes[0].toxml()
+    except ExpatError:
+        pass
     return output.decode('UTF-8')
 
 
