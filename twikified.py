@@ -20,11 +20,6 @@ to '/bags/common/tiddlers/'. The human installer is expected to get the
 right tiddlers in the right place (for now).
 """
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
 import Cookie
 import socket
 
@@ -38,7 +33,7 @@ from tiddlyweb.model.bag import Bag
 from tiddlyweb.model.recipe import Recipe
 from tiddlyweb.model.tiddler import Tiddler
 from tiddlyweb.web.util import (escape_attribute_value, html_encode,
-        encode_name, recipe_url, bag_url, get_route_value)
+        recipe_url, bag_url, get_route_value)
 
 REVISION_RENDERER = 'tiddlywebplugins.wikklytextrender'
 
@@ -49,6 +44,10 @@ SERIALIZERS = {
 
 
 def init(config):
+    """
+    Establish if this plugin is to be used a a serializaiton, a renderer,
+    or both (which would be weird, but is possible).
+    """
     if config.get('twikified.serializer', False):
         config['serializers'].update(SERIALIZERS)
     if config.get('twikified.render', True):
@@ -56,6 +55,14 @@ def init(config):
 
 
 def render(tiddler, environ):
+    """
+    Return tiddler.text as rendered HTML by passing it down a 
+    socket to the nodejs based server.js process. Transclusions
+    are identified in the returned text and processed recursively.
+
+    If there is a current user, that user is passed along the pipe
+    so that private content can be retrieved by nodejs (over HTTP).
+    """
     try:
         # If this is a revision view, use REVISION_RENDERER.
         get_route_value(environ, 'revision')
@@ -81,17 +88,20 @@ def render(tiddler, environ):
     twik_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
     try:
-      twik_socket.connect('/tmp/wst.sock')
+        twik_socket.connect(socket_path)
     except IOError:
-      output = """
-      <div class='error'>There was a problem rendering this tiddler. The raw text is given instead below.</div>
-      <pre class='wikitext'>%s</pre>
-      """%(escape_attribute_value(tiddler.text))
-      return output
+        output = """
+<div class='error'>There was a problem rendering this tiddler.
+The raw text is given below.</div>
+<pre class='wikitext'>%s</pre>
+""" % (escape_attribute_value(tiddler.text))
+        return output
+
     twik_socket.sendall('%s\x00%s\x00%s\n' % (collection,
         tiddler.text.encode('utf-8', 'replace'),
         tiddlyweb_cookie))
     twik_socket.shutdown(socket.SHUT_WR)
+
     output = ''
     try:
         while True:
@@ -153,7 +163,7 @@ class Serialization(HTMLSerialization):
 
     def tiddler_as(self, tiddler):
         """
-        Send out the bare minimum required to make webtwik know there is 
+        Send out the bare minimum required to make webtwik know there is
         a tiddler.
         """
         # branch away if we are going to use the render system
@@ -178,10 +188,10 @@ class Serialization(HTMLSerialization):
 <script src="%(container)stwik" type="text/javascript"></script>
 <script src="%(container)swebtwik" type="text/javascript"></script>
 """ % {'container': common_container}
-        tiddler_div = '<div class="tiddler" title="%s" %s><pre>%s</pre></div>' % (
-                escape_attribute_value(tiddler.title),
-                self._tiddler_provenance(tiddler),
-                self._text(tiddler))
+        tiddler_div = ('<div class="tiddler" title="%s" %s><pre>%s</pre></div>'
+                % (escape_attribute_value(tiddler.title),
+                    self._tiddler_provenance(tiddler),
+                    self._text(tiddler)))
         self.environ['tiddlyweb.title'] = tiddler.title
         return tiddler_div + scripts
 
@@ -192,6 +202,7 @@ class Serialization(HTMLSerialization):
 
     def _tiddler_provenance(self, tiddler):
         if tiddler.recipe:
-            return 'server.recipe="%s"' % escape_attribute_value(tiddler.recipe)
+            return 'server.recipe="%s"' % escape_attribute_value(
+                    tiddler.recipe)
         else:
             return 'server.bag="%s"' % escape_attribute_value(tiddler.bag)
