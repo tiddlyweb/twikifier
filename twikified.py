@@ -137,7 +137,8 @@ The raw text is given below.</div>
                             interior_tiddler.recipe = tiddler.recipe
                         interior_content = render(interior_tiddler, environ)
                         interior_dom = minidom.parseString(
-                                interior_content.replace('<br>', '<br/>'))
+                                interior_content.encode('utf-8', 'replace')
+                                .replace('<br>', '<br/>'))
                         span.appendChild(interior_dom.childNodes[0])
                     seen_titles.append(interior_title)
 
