@@ -123,7 +123,8 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
             {
                 'host': parsed_uri.hostname,
                 'accept': 'application/json',
-                'cookie': tiddlyweb_cookie
+                'cookie': tiddlyweb_cookie,
+                'x-controlview': 'false'
             });
 
     request.end();
