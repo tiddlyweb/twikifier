@@ -2,8 +2,8 @@
 var createWikifier = function(window, jQuery, passedServerOptions) {
     var serverOptions = {
         'host': 'http://tiddlyspace.com',
-        'container': null,
-    }
+        'container': null
+    };
     if (typeof passedServerOptions === 'undefed') {
         passedServerOptions = {};
     }
