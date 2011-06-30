@@ -93,15 +93,15 @@ too much so instead: What follows has less explanation than it could.
 
 `Wikifier.js` requires the global `formatter`, a `Formatter` from `FormatterHelpers.js`.
 
-`FormatterHelpers.js` requires the global `config`, from `Config.js`, which requires the `navigator` global, which `twikifier` stubs in.
+`FormatterHelpers.js` requires the global `config`, from `Config.js`.
 
 A `Formatter` needs formatters, which are in `config` and defined in `Formatter.js`.
 
 `Formatter.js` requires `FormatterHelper.js`, creating a cycle.
 
-`Wikifier.js` requires global `createTiddlyText()`, from `Dom.js`.
+`Wikifier.js` requires global `createTiddlyText()`, from `Utilities.js`.
 
-`Wikifier.js` requires global `createTiddlyElement()`, from `Dom.js`.
+`Wikifier.js` requires global `createTiddlyElement()`, from `Utilities.js`.
 
 `Formatter.js`, to format links, requires global `createTiddlyLink()` from `Utilities.js`.
 
