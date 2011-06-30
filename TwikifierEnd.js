@@ -22,8 +22,8 @@ function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromT
 function createTagButton(place,tag,excludeTiddler,title,tooltip)
 {
     var taglink = serverOptions.container ?
-        serverOptions.container + '?select=tag:' + encodeURIComponent(tag)
-        : "/search?q=tag:" + encodeURIComponent(tag);
+        serverOptions.container + '?select=tag:' + encodeURIComponent(tag) :
+            "/search?q=tag:" + encodeURIComponent(tag);
     var btn = createExternalLink(place, taglink, tag);
     return btn;
 }
@@ -43,8 +43,8 @@ function createSpaceLink(place, spaceName, title, alt, isBag) {
     link = link.replace("http://", "http://" + spaceName.toLowerCase() + ".");
 
     if (title) {
-        a = createExternalLink(place, link + "/"
-                + encodeURIComponent(title), alt || title);
+        a = createExternalLink(place, link + "/" +
+                encodeURIComponent(title), alt || title);
     } else {
         a = createExternalLink(place, link, alt || spaceName);
     }
@@ -57,7 +57,7 @@ config.options.chkOpenInNewWindow = false;
 config.evaluateMacroParameters = 'none';
 
 return [wikify, store, Tiddler];
-}
+};
 
 if (typeof exports != "undefined")
     exports.createWikifier = createWikifier;
