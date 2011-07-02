@@ -54,7 +54,7 @@ def init(config):
         config['wikitext.default_renderer'] = 'twikified'
 
 
-def render(tiddler, environ):
+def render(tiddler, environ, seen_titles=None):
     """
     Return tiddler.text as rendered HTML by passing it down a 
     socket to the nodejs based server.js process. Transclusions
@@ -69,6 +69,9 @@ def render(tiddler, environ):
         return _render_revision(tiddler, environ)
     except KeyError:
         pass
+
+    if seen_titles is None:
+        seen_titles = []
 
     if tiddler.recipe:
         collection = recipe_url(environ, Recipe(tiddler.recipe)) + '/tiddlers'
@@ -115,7 +118,6 @@ The raw text is given below.</div>
 
     # process for transclusions
     try:
-        seen_titles = []
         dom = minidom.parseString('<div>'
                 + output.replace('<br>', '<br/>')
                 + '</div>')
@@ -126,6 +128,7 @@ The raw text is given below.</div>
                     attr = span.attributes[attribute]
                     interior_title = attr.value
                     if interior_title not in seen_titles:
+                        seen_titles.append(interior_title)
                         interior_tiddler = Tiddler(interior_title)
                         interior_tiddler.bag = tiddler.bag
                         try:
@@ -135,16 +138,19 @@ The raw text is given below.</div>
                             continue
                         if tiddler.recipe:
                             interior_tiddler.recipe = tiddler.recipe
-                        interior_content = render(interior_tiddler, environ)
+                        interior_content = render(interior_tiddler, environ,
+                                seen_titles)
                         interior_dom = minidom.parseString(
                                 interior_content.encode('utf-8', 'replace')
                                 .replace('<br>', '<br/>'))
                         span.appendChild(interior_dom.childNodes[0])
-                    seen_titles.append(interior_title)
 
         output = dom.childNodes[0].toxml()
-    except ExpatError:
-        pass
+    except ExpatError, exc:
+        # If expat couldn't process the output, we need to make it
+        # unicode as what came over the socket was utf-8 but expat
+        # needs that in the first place.
+        output = output.decode('utf-8', 'replace')
     return output
 
 
