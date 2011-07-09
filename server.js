@@ -124,6 +124,7 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
                 'host': parsed_uri.hostname,
                 'accept': 'application/json',
                 'cookie': tiddlyweb_cookie,
+                'user-agent': 'twikifier server.js',
                 'x-controlview': 'false'
             });
 
