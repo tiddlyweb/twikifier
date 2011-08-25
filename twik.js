@@ -28,6 +28,7 @@ twik.loadRemoteTiddlers = function(store, Tiddler, uri, jsonTiddlers) {
     }
     storeURL = new Tiddler('SiteUrl');
     storeURL.text = uri;
+    storeURL.tags = ['excludeLists'];
     store.addTiddler(storeURL);
 }
 
