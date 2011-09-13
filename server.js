@@ -115,44 +115,50 @@ var processRequest = function(args, emitter) {
 
 getData = function(memcache, collection_uri, tiddlyweb_cookie,
         emitter, store, Tiddler, tiddlerText, wikify, memcacheKey) {
-    console.log('not using cache for', collection_uri);
-    var parsed_uri = url.parse(collection_uri),
-        client = http.createClient(parsed_uri.port ? parsed_uri.port : 80,
-            parsed_uri.hostname),
-        request = client.request('GET', parsed_uri.pathname,
-            {
-                'host': parsed_uri.hostname,
-                'accept': 'application/json',
-                'cookie': tiddlyweb_cookie,
-                'x-controlview': 'false'
-            });
+    if (/<</.test(tiddlerText)) {
+        console.log('not using cache for', collection_uri);
+        var parsed_uri = url.parse(collection_uri),
+            client = http.createClient(parsed_uri.port ? parsed_uri.port : 80,
+                parsed_uri.hostname),
+            request = client.request('GET', parsed_uri.pathname,
+                {
+                    'host': parsed_uri.hostname,
+                    'accept': 'application/json',
+                    'cookie': tiddlyweb_cookie,
+                    'user-agent': 'twikifier server.js',
+                    'x-controlview': 'false'
+                });
 
-    request.end();
+        request.end();
 
-    request.on('error', function(err) {
-        emitter.emit('output', 'Error getting collection: ' + err);
-    });
+        request.on('error', function(err) {
+            emitter.emit('output', 'Error getting collection: ' + err);
+        });
 
-    request.on('response', function(response) {
-        if (response.statusCode === '302' &&
-                response.headers.location.indexOf('/challenge')) {
-            emitter.emit('output', 'Error getting collection: challenger.');
-        } else {
-            response.setEncoding('utf8');
-            var content = '';
-            response.on('data', function(chunk) {
-                content += chunk;
-            });
-            response.on('end', function() {
-                if (typeof memcache !== 'undefined' && memcacheKey) {
-                    memcache.set(memcacheKey, content, 0, function() {});
-                }
-                twik.loadRemoteTiddlers(store, Tiddler, collection_uri, content);
-                var output = processData(store, tiddlerText, wikify);
-                emitter.emit('output', output);
-            });
-        }
-    });
+        request.on('response', function(response) {
+            if (response.statusCode === '302' &&
+                    response.headers.location.indexOf('/challenge')) {
+                emitter.emit('output', 'Error getting collection: challenger.');
+            } else {
+                response.setEncoding('utf8');
+                var content = '';
+                response.on('data', function(chunk) {
+                    content += chunk;
+                });
+                response.on('end', function() {
+                    if (typeof memcache !== 'undefined' && memcacheKey) {
+                        memcache.set(memcacheKey, content, 0, function() {});
+                    }
+                    twik.loadRemoteTiddlers(store, Tiddler, collection_uri, content);
+                    var output = processData(store, tiddlerText, wikify);
+                    emitter.emit('output', output);
+                });
+            }
+        });
+    } else {
+        var output = processData(store, tiddlerText, wikify);
+        emitter.emit('output', output);
+    }
 };
 
 server.addListener('connection', function(c) {
