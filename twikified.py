@@ -92,7 +92,7 @@ def render(tiddler, environ, seen_titles=None):
 
     try:
         twik_socket.connect(socket_path)
-    except IOError:
+    except (socket.error, IOError):
         output = """
 <div class='error'>There was a problem rendering this tiddler.
 The raw text is given below.</div>
