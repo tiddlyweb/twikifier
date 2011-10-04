@@ -20,6 +20,7 @@ to '/bags/common/tiddlers/'. The human installer is expected to get the
 right tiddlers in the right place (for now).
 """
 
+import logging
 import Cookie
 import socket
 
@@ -28,6 +29,7 @@ from xml.parsers.expat import ExpatError
 
 from tiddlywebplugins.atom.htmllinks import Serialization as HTMLSerialization
 
+from tiddlyweb.control import determine_bag_from_recipe
 from tiddlyweb.store import StoreError
 from tiddlyweb.model.bag import Bag
 from tiddlyweb.model.recipe import Recipe
@@ -92,29 +94,39 @@ def render(tiddler, environ, seen_titles=None):
 
     try:
         twik_socket.connect(socket_path)
-    except IOError:
+    except (socket.error, IOError), exc:
+        output = """
+<div class='error'>There was a problem rendering this tiddler.
+The raw text is given below.</div>
+<pre class='wikitext'>%s</pre>
+""" % (escape_attribute_value(tiddler.text))
+        logging.warn('twikifier socket connect failed: %s', exc)
+        return output
+
+    try:
+        twik_socket.sendall('%s\x00%s\x00%s\n' % (collection,
+            tiddler.text.encode('utf-8', 'replace'),
+            tiddlyweb_cookie))
+        twik_socket.shutdown(socket.SHUT_WR)
+
+        output = ''
+        try:
+            while True:
+                data = twik_socket.recv(1024)
+                if data:
+                    output += data
+                else:
+                    break
+        finally:
+            twik_socket.close()
+    except (socket.error, IOError), exc:
+        logging.warn('twikifier error during data processing: %s', exc)
         output = """
 <div class='error'>There was a problem rendering this tiddler.
 The raw text is given below.</div>
 <pre class='wikitext'>%s</pre>
 """ % (escape_attribute_value(tiddler.text))
         return output
-
-    twik_socket.sendall('%s\x00%s\x00%s\n' % (collection,
-        tiddler.text.encode('utf-8', 'replace'),
-        tiddlyweb_cookie))
-    twik_socket.shutdown(socket.SHUT_WR)
-
-    output = ''
-    try:
-        while True:
-            data = twik_socket.recv(1024)
-            if data:
-                output += data
-            else:
-                break
-    finally:
-        twik_socket.close()
 
     # process for transclusions
     try:
@@ -130,14 +142,18 @@ The raw text is given below.</div>
                     if interior_title not in seen_titles:
                         seen_titles.append(interior_title)
                         interior_tiddler = Tiddler(interior_title)
-                        interior_tiddler.bag = tiddler.bag
                         try:
-                            interior_tiddler = environ['tiddlyweb.store'].get(
-                                    interior_tiddler)
+                            store = environ['tiddlyweb.store']
+                            if tiddler.recipe:
+                                interior_tiddler.recipe = tiddler.recipe
+                                recipe = store.get(Recipe(tiddler.recipe))
+                                interior_tiddler.bag = determine_bag_from_recipe(
+                                        recipe, interior_tiddler, environ).name
+                            else:
+                                interior_tiddler.bag = tiddler.bag
+                            interior_tiddler = store.get(interior_tiddler)
                         except StoreError:
                             continue
-                        if tiddler.recipe:
-                            interior_tiddler.recipe = tiddler.recipe
                         interior_content = render(interior_tiddler, environ,
                                 seen_titles)
                         interior_dom = minidom.parseString(

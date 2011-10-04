@@ -181,3 +181,4 @@ server.addListener('connection', function(c) {
 });
 
 server.listen('/tmp/wst.sock');
+server.maxConnections = 20;
