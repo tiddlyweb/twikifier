@@ -3,4 +3,6 @@
 
 [[twikifier]] is a node based tool using TiddlyWiki code to turn text into HTML.
 
+There are foo&bar in there as well as -- dashes.
+
 It is <<today>>.
