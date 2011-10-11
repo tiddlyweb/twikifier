@@ -65,12 +65,6 @@ def render(tiddler, environ, seen_titles=None):
     If there is a current user, that user is passed along the pipe
     so that private content can be retrieved by nodejs (over HTTP).
     """
-    try:
-        # If this is a revision view, use REVISION_RENDERER.
-        get_route_value(environ, 'revision')
-        return _render_revision(tiddler, environ)
-    except KeyError:
-        pass
 
     if seen_titles is None:
         seen_titles = []
