@@ -34,6 +34,7 @@ from tiddlyweb.store import StoreError
 from tiddlyweb.model.bag import Bag
 from tiddlyweb.model.recipe import Recipe
 from tiddlyweb.model.tiddler import Tiddler
+from tiddlyweb.util import renderable
 from tiddlyweb.web.util import (escape_attribute_value, html_encode,
         recipe_url, bag_url, get_route_value)
 
@@ -148,7 +149,7 @@ The raw text is given below.</div>
                             interior_tiddler = store.get(interior_tiddler)
                         except StoreError:
                             continue
-                        if renderable(interior_content, environ):
+                        if renderable(interior_tiddler, environ):
                             interior_content = render(interior_tiddler, environ,
                                     seen_titles)
                             interior_dom = minidom.parseString(
