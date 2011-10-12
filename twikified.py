@@ -148,12 +148,13 @@ The raw text is given below.</div>
                             interior_tiddler = store.get(interior_tiddler)
                         except StoreError:
                             continue
-                        interior_content = render(interior_tiddler, environ,
-                                seen_titles)
-                        interior_dom = minidom.parseString(
-                                interior_content.encode('utf-8', 'replace')
-                                .replace('<br>', '<br/>'))
-                        span.appendChild(interior_dom.childNodes[0])
+                        if renderable(interior_content, environ):
+                            interior_content = render(interior_tiddler, environ,
+                                    seen_titles)
+                            interior_dom = minidom.parseString(
+                                    interior_content.encode('utf-8', 'replace')
+                                    .replace('<br>', '<br/>'))
+                            span.appendChild(interior_dom.childNodes[0])
 
         output = dom.childNodes[0].toxml()
     except ExpatError, exc:
