@@ -13,6 +13,7 @@ var net = require('net'),
 
 var Emitter = require('events').EventEmitter,
     server = net.createServer({allowHalfOpen: true}),
+    memcache = new Memcached('127.0.0.1:11211'),
     wikifiers = {},
     getData;
 
@@ -53,7 +54,6 @@ var processRequest = function(args, emitter) {
     var collection_uri = args[0],
         tiddlerText = args[1],
         tiddlyweb_cookie = args[2] || '',
-        memcache = new Memcached('127.0.0.1:11211'),
         globals = twikifier.createWikifier(window, jQuery,
                 {container: collection_uri}),
         namespace = getNamespace(collection_uri),
