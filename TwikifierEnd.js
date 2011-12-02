@@ -11,7 +11,8 @@ function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromT
         var text = includeText ? title : null;
         var i = getTiddlyLinkInfo(title,className);
         var urlString = store.getTiddlerText("SiteUrl");
-        var linktext = urlString ? urlString + '/' + title : title;
+        var encodedTitle = encodeURIComponent(title);
+        var linktext = urlString ? urlString + '/' + encodedTitle : encodedTitle;
         var btn = createExternalLink(place, linktext, text);
         btn.className += ' ' + className;
         return btn;
