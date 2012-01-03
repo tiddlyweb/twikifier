@@ -5,4 +5,6 @@
 
 There are foo&bar in there as well as -- dashes.
 
+WikiPage@cdent is a space link.
+
 It is <<today>>.
