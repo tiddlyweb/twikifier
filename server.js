@@ -1,5 +1,7 @@
 /*jslint unparam: true, indent: 4, node: true */
 
+process.title = 'twikifier'; // helpful for watching top and ps
+
 var net = require('net'),
     jsdom = require('jsdom'),
     jquery = require('jquery'),
