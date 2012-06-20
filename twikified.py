@@ -24,7 +24,7 @@ import logging
 import Cookie
 import socket
 
-from xml.dom import minidom
+import html5lib
 from xml.parsers.expat import ExpatError
 
 from tiddlywebplugins.atom.htmllinks import Serialization as HTMLSerialization
@@ -69,6 +69,9 @@ def render(tiddler, environ, seen_titles=None):
 
     if seen_titles is None:
         seen_titles = []
+
+    parser = html5lib.HTMLParser(
+            tree = html5lib.treebuilders.getTreeBuilder("dom"))
 
     if tiddler.recipe:
         collection = recipe_url(environ, Recipe(tiddler.recipe)) + '/tiddlers'
@@ -125,9 +128,7 @@ The raw text is given below.</div>
 
     # process for transclusions
     try:
-        dom = minidom.parseString('<div>'
-                + output.replace('<br>', '<br/>')
-                + '</div>')
+        dom = parser.parse('<div>' + output + '</div>')
         spans = dom.getElementsByTagName('span')
         for span in spans:
             for attribute in span.attributes.keys():
@@ -152,16 +153,17 @@ The raw text is given below.</div>
                         if renderable(interior_tiddler, environ):
                             interior_content = render(interior_tiddler, environ,
                                     seen_titles)
-                            interior_dom = minidom.parseString(
+                            interior_dom = parser.parse('<div>' + 
                                     interior_content.encode('utf-8', 'replace')
-                                    .replace('<br>', '<br/>'))
-                            span.appendChild(interior_dom.childNodes[0])
+                                    + '</div>')
+                            span.appendChild(interior_dom.getElementsByTagName('div')[0])
 
-        output = dom.childNodes[0].toxml()
+        output = dom.getElementsByTagName('div')[0].toxml()
     except ExpatError, exc:
         # If expat couldn't process the output, we need to make it
         # unicode as what came over the socket was utf-8 but expat
         # needs that in the first place.
+        logging.warn('got expat error: %s:%s %s', tiddler.bag, tiddler.title, exc)
         output = output.decode('utf-8', 'replace')
     return output
 
