@@ -6,7 +6,7 @@ var net = require('net'),
     http = require('http'),
     url = require('url'),
     Memcached = require('memcached'),
-    hashlib = require('hashlib'),
+    crypto = require('crypto'),
     uuid = require('node-uuid'),
     twikifier = require('./twikifier'),
     twik = require('./twik');
@@ -24,6 +24,11 @@ var jQuery = jquery.create(window); // jQuery-ize the window
 var formatText = function(place, wikify, text, tiddler) {
     wikify(text, place, null, tiddler);
     return place.innerHTML;
+};
+
+var sha1Hex = function(input) {
+    var hashMaker = crypto.createHash('sha1');
+    return hashMaker.update(input).digest('hex');
 };
 
 var processData = function(store, tiddlerText, wikify) {
@@ -45,7 +50,7 @@ var getNamespace = function(uri) {
     } else {
         namespace = match[1] + ':' + match[2] + '_namespace';
     }
-    return hashlib.sha1(namespace);
+    return sha1Hex(namespace);
 };
 
 var processRequest = function(args, emitter) {
@@ -85,7 +90,7 @@ var processRequest = function(args, emitter) {
                         }
                     });
                 } else {
-                    var memcacheKey = hashlib.sha1(result + collection_uri);
+                    var memcacheKey = sha1Hex(result + collection_uri);
                     memcache.get(memcacheKey, function(err, result) {
                         if (err) {
                             console.error(err);
