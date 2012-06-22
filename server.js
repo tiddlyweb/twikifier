@@ -170,6 +170,10 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
 
 server.addListener('connection', function(c) {
     var data = '';
+    c.addListener('error', function(err) {
+        c.destroy();
+        console.error(err);
+    });
     c.addListener('data', function(chunk) {
         data += chunk;
     });
@@ -179,9 +183,11 @@ server.addListener('connection', function(c) {
         var output = processRequest(args);
         if (typeof output === "string") {
             c.end(output);
+            c.destroy();
         } else {
             output.on('output', function(data) {
                 c.end(data);
+                c.destroy();
             });
         }
     });
