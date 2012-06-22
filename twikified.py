@@ -99,6 +99,8 @@ The raw text is given below.</div>
 <pre class='wikitext'>%s</pre>
 """ % (escape_attribute_value(tiddler.text))
         logging.warn('twikifier socket connect failed: %s', exc)
+        twik_socket.shutdown(socket.SHUT_RDWR)
+        twik_socket.close()
         return output
 
     try:
@@ -116,6 +118,7 @@ The raw text is given below.</div>
                 else:
                     break
         finally:
+            twik_socket.shutdown(socket.SHUT_RDWR)
             twik_socket.close()
     except (socket.error, IOError), exc:
         logging.warn('twikifier error during data processing: %s', exc)
@@ -124,6 +127,8 @@ The raw text is given below.</div>
 The raw text is given below.</div>
 <pre class='wikitext'>%s</pre>
 """ % (escape_attribute_value(tiddler.text))
+        twik_socket.shutdown(socket.SHUT_RDWR)
+        twik_socket.close()
         return output
 
     # process for transclusions
