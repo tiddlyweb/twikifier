@@ -132,6 +132,8 @@ The raw text is given below.</div>
         return output
 
     # process for transclusions
+    # make the socket output unicode first
+    output = output.decode('utf-8', 'replace')
     try:
         dom = parser.parse('<div>' + output + '</div>')
         spans = dom.getElementsByTagName('span')
