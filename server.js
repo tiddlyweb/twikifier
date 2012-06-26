@@ -171,10 +171,12 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
 server.addListener('connection', function(c) {
     var data = '';
     c.addListener('timeout', function() {
+        c.end('timeout on socket communication')
         c.destroy();
         console.error('timeout event on connection', c);
     });
     c.addListener('error', function(err) {
+        c.end('error event on connection')
         c.destroy();
         console.error('error event on connection', c, err);
     });
@@ -195,8 +197,8 @@ server.addListener('connection', function(c) {
             });
         }
     });
-    // timeout after 2 seconds of inactivity
-    c.setTimeout(2000);
+    // timeout after 10 seconds of inactivity
+    c.setTimeout(10000);
 });
 
 server.listen('/tmp/wst.sock');
