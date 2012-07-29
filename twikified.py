@@ -177,7 +177,7 @@ The raw text is given below.</div>
                             interior_content = render(interior_tiddler, environ,
                                     seen_titles)
                             interior_dom = parser.parse('<div>' + 
-                                    interior_content.encode('utf-8', 'replace')
+                                    interior_content
                                     + '</div>')
                             span.appendChild(interior_dom.getElementsByTagName('div')[0])
 
