@@ -15,16 +15,16 @@ some HTML output.
 
 # How
 
-(The below is for OS X but should transliterate to other environments.)
+(The below is for OS X but should transliterate to other environments.  It has also been tested on Ubuntu 12.04)
 
 Install node.js and its package manager npm. If you are using brew that
 goes like this:
 
     brew install node npm
 
-One you have npm, install jsdom, htmlparser, jquery and tav
+One you have npm, install jsdom, htmlparser, jQuery (case sensitive), tav, location, navigator and xmlhttprequest
 
-    npm install jsdom htmlparser jquery tav
+    npm install jsdom@0.2.15 htmlparser jQuery tav location navigator xmlhttprequest
 
 If you want to use server.js you also need:
 
