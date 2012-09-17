@@ -4,7 +4,7 @@ process.title = 'twikifier'; // helpful for watching top and ps
 
 var net = require('net'),
     jsdom = require('jsdom'),
-    jquery = require('jquery'),
+    jquery = require('jQuery'),
     http = require('http'),
     url = require('url'),
     Memcached = require('memcached'),
