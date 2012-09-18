@@ -1,1 +1,37 @@
-{ "name": "twikifier" }
+{
+    "name": "twikifier",
+    "author": "Chris Dent <cdent@peermore.com>",
+    "contributors": [,
+        "Jon Robson <jdlrobson@gmail.com>",
+        "Martin Budden",
+        "Ben Paddock <pads@thisispads.me.uk>",
+        "Blaine Cook <romeda@gmail.com>"
+    ],
+    "version": "1.0.0",
+    "description": "A node.js-based wikifier for wikitext formatted as TiddlyWiki text",
+    "homepage": "https://github.com/cdent/twikifier",
+    "keywords": [
+        "tiddlywiki",
+        "wikitext",
+        "wikifier",
+        "tiddlyweb",
+        "tiddlyspace"
+    ],
+    "dependencies": {
+        "htmlparser": "1.7.x",
+        "jQuery": "1.7.x",
+        "jsdom": "0.2.15",
+        "location": "0.0.x",
+        "memcached": "0.0.10",
+        "navigator": "1.0.x",
+        "net": "1.0.x",
+        "node-uuid": "1.3.x",
+        "tav": "0.1.x",
+        "url": "0.7.x",
+        "xmlhttprequest": "1.4.x"
+    },
+    "engine": "node >= 0.8.x",
+    "scripts": {
+        "test": "make test"
+    }
+}
