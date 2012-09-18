@@ -88,6 +88,24 @@ of tiddlers, in JSON, as found in TiddlyWeb. Things like:
 
 As the tool develops there will be other interfaces.
 
+# Use with TiddlyWeb and Tiddlyspace
+
+Copy twikified.py into the folder where the instance is running.
+
+Add 'twikified' to the list of system plugins in tiddlywebconfig.py.
+
+Run the twikifier server:
+
+    ./twikifier_server
+
+Or:
+
+    node server.js
+
+Then start TiddlyWeb/Tiddlyspace
+
+If you have connection problems after a restart, remove `/tmp/wst.sock` and try again.
+
 # Why
 
 TiddlyWeb and friends use [WikklyText](http://wikklytext.com/) to do sever-side
@@ -167,6 +185,8 @@ needs two things:
 
 * To present a web service or local socket that takes an input (a text
   string, a tiddler bag/title combo?) and returns the generated HTML.
+
+Packaging this up as a node module would also be of use.
 
 # Who
 
