@@ -35,6 +35,7 @@ from tiddlyweb.model.bag import Bag
 from tiddlyweb.model.policy import PermissionsError
 from tiddlyweb.model.recipe import Recipe
 from tiddlyweb.model.tiddler import Tiddler
+from tiddlyweb.wikitext import render_wikitext
 from tiddlyweb.util import renderable
 from tiddlyweb.web.util import (escape_attribute_value, html_encode,
         recipe_url, bag_url, get_route_value)
@@ -58,7 +59,7 @@ def init(config):
         config['wikitext.default_renderer'] = 'twikified'
 
 
-def render(tiddler, environ, seen_titles=None):
+def render(tiddler, environ):
     """
     Return tiddler.text as rendered HTML by passing it down a 
     socket to the nodejs based server.js process. Transclusions
@@ -68,7 +69,9 @@ def render(tiddler, environ, seen_titles=None):
     so that private content can be retrieved by nodejs (over HTTP).
     """
 
-    if seen_titles is None:
+    if 'twikified.seen_titles' in environ:
+        seen_titles = environ['twikified.seen_titles']
+    else:
         seen_titles = []
 
     parser = html5lib.HTMLParser(
@@ -122,15 +125,18 @@ The raw text is given below.</div>
             twik_socket.shutdown(socket.SHUT_RDWR)
             twik_socket.close()
     except (socket.error, IOError), exc:
-        logging.warn('twikifier error during data processing: %s', exc)
-        output = """
-<div class='error'>There was a problem rendering this tiddler.
-The raw text is given below.</div>
-<pre class='wikitext'>%s</pre>
-""" % (escape_attribute_value(tiddler.text))
-        twik_socket.shutdown(socket.SHUT_RDWR)
-        twik_socket.close()
-        return output
+        if exc.errno == 57:
+            twik_socket.close()
+        else:
+            logging.warn('twikifier error during data processing: %s', exc)
+            output = """
+    <div class='error'>There was a problem rendering this tiddler.
+    The raw text is given below.</div>
+    <pre class='wikitext'>%s</pre>
+    """ % (escape_attribute_value(tiddler.text))
+            twik_socket.shutdown(socket.SHUT_RDWR)
+            twik_socket.close()
+            return output
 
     # process for transclusions
     # make the socket output unicode first
@@ -166,20 +172,24 @@ The raw text is given below.</div>
                                 if tiddler.recipe:
                                     interior_tiddler.recipe = tiddler.recipe
                                     recipe = store.get(Recipe(tiddler.recipe))
-                                    interior_tiddler.bag = determine_bag_from_recipe(
-                                            recipe, interior_tiddler, environ).name
+                                    interior_tiddler.bag = (
+                                            determine_bag_from_recipe(
+                                                recipe, interior_tiddler,
+                                                environ).name)
                                 else:
                                     interior_tiddler.bag = tiddler.bag
                             interior_tiddler = store.get(interior_tiddler)
                         except (StoreError, PermissionsError):
                             continue
                         if renderable(interior_tiddler, environ):
-                            interior_content = render(interior_tiddler, environ,
-                                    seen_titles)
+                            environ['twikified.seen_titles'] = seen_titles
+                            interior_content = render_wikitext(
+                                    interior_tiddler, environ)
                             interior_dom = parser.parse('<div>' + 
                                     interior_content
                                     + '</div>')
-                            span.appendChild(interior_dom.getElementsByTagName('div')[0])
+                            span.appendChild(
+                                    interior_dom.getElementsByTagName('div')[0])
 
         output = dom.getElementsByTagName('div')[0].toxml()
     except ExpatError, exc:
