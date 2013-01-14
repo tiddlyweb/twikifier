@@ -27,8 +27,6 @@ import socket
 import html5lib
 from xml.parsers.expat import ExpatError
 
-from tiddlywebplugins.atom.htmllinks import Serialization as HTMLSerialization
-
 from tiddlyweb.control import determine_bag_from_recipe
 from tiddlyweb.store import StoreError
 from tiddlyweb.model.bag import Bag
@@ -37,15 +35,9 @@ from tiddlyweb.model.recipe import Recipe
 from tiddlyweb.model.tiddler import Tiddler
 from tiddlyweb.wikitext import render_wikitext
 from tiddlyweb.util import renderable
-from tiddlyweb.web.util import (escape_attribute_value, html_encode,
-        recipe_url, bag_url, get_route_value)
+from tiddlyweb.web.util import (escape_attribute_value, recipe_url, bag_url)
 
 REVISION_RENDERER = 'tiddlywebplugins.wikklytextrender'
-
-SERIALIZERS = {
-    'text/html': ['twikified', 'text/html; charset=UTF-8'],
-    'default': ['twikified', 'text/html; charset=UTF-8'],
-}
 
 
 def init(config):
@@ -53,15 +45,13 @@ def init(config):
     Establish if this plugin is to be used a a serializaiton, a renderer,
     or both (which would be weird, but is possible).
     """
-    if config.get('twikified.serializer', False):
-        config['serializers'].update(SERIALIZERS)
     if config.get('twikified.render', True):
         config['wikitext.default_renderer'] = 'twikified'
 
 
 def render(tiddler, environ):
     """
-    Return tiddler.text as rendered HTML by passing it down a 
+    Return tiddler.text as rendered HTML by passing it down a
     socket to the nodejs based server.js process. Transclusions
     are identified in the returned text and processed recursively.
 
@@ -75,7 +65,7 @@ def render(tiddler, environ):
         seen_titles = []
 
     parser = html5lib.HTMLParser(
-            tree = html5lib.treebuilders.getTreeBuilder("dom"))
+            tree=html5lib.treebuilders.getTreeBuilder("dom"))
 
     if tiddler.recipe:
         collection = recipe_url(environ, Recipe(tiddler.recipe)) + '/tiddlers'
@@ -185,78 +175,19 @@ The raw text is given below.</div>
                             environ['twikified.seen_titles'] = seen_titles
                             interior_content = render_wikitext(
                                     interior_tiddler, environ)
-                            interior_dom = parser.parse('<div>' + 
+                            interior_dom = parser.parse('<div>' +
                                     interior_content
                                     + '</div>')
                             span.appendChild(
-                                    interior_dom.getElementsByTagName('div')[0])
+                                    interior_dom.getElementsByTagName(
+                                        'div')[0])
 
         output = dom.getElementsByTagName('div')[0].toxml()
     except ExpatError, exc:
         # If expat couldn't process the output, we need to make it
         # unicode as what came over the socket was utf-8 but expat
         # needs that in the first place.
-        logging.warn('got expat error: %s:%s %s', tiddler.bag, tiddler.title, exc)
+        logging.warn('got expat error: %s:%s %s',
+                tiddler.bag, tiddler.title, exc)
         output = output.decode('utf-8', 'replace')
     return output
-
-
-def _render_revision(tiddler, environ):
-    """
-    Fall back to a simpler renderer to deal with rendering revisions.
-    twikifier doesn't currently care about revisions.
-    """
-    renderer = __import__(REVISION_RENDERER, {}, {}, ['render'])
-    return renderer.render(tiddler, environ)
-
-
-class Serialization(HTMLSerialization):
-
-    def _render(self, tiddler):
-        return HTMLSerialization.tiddler_as(self, tiddler)
-
-    def tiddler_as(self, tiddler):
-        """
-        Send out the bare minimum required to make webtwik know there is
-        a tiddler.
-        """
-        # branch away if we are going to use the render system
-        if self.environ['tiddlyweb.config'].get('twikified.render', True):
-            return self._render(tiddler)
-
-        common_container = self.environ.get(
-                'tiddlyweb.config', {}).get(
-                        'twikified.container', '/bags/common/tiddlers/')
-        scripts = """
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"
-    type="text/javascript"></script>
-<script>
-    $.ajaxSetup({
-        beforeSend: function(xhr) {
-            xhr.setRequestHeader("X-ControlView",
-            "false");
-        }
-    });
-</script>
-<script src="%(container)stwikifier" type="text/javascript"></script>
-<script src="%(container)stwik" type="text/javascript"></script>
-<script src="%(container)swebtwik" type="text/javascript"></script>
-""" % {'container': common_container}
-        tiddler_div = ('<div class="tiddler" title="%s" %s><pre>%s</pre></div>'
-                % (escape_attribute_value(tiddler.title),
-                    self._tiddler_provenance(tiddler),
-                    self._text(tiddler)))
-        self.environ['tiddlyweb.title'] = tiddler.title
-        return tiddler_div + scripts
-
-    def _text(self, tiddler):
-        if not tiddler.type or tiddler.type == 'None':
-            return html_encode(tiddler.text)
-        return ''
-
-    def _tiddler_provenance(self, tiddler):
-        if tiddler.recipe:
-            return 'server.recipe="%s"' % escape_attribute_value(
-                    tiddler.recipe)
-        else:
-            return 'server.bag="%s"' % escape_attribute_value(tiddler.bag)
