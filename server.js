@@ -87,11 +87,10 @@ var processRequest = function(args, emitter) {
 						}
 						if (result) {
 							return processRequest(args, emitter);
-						} else {
-							getData(memcache, collection_uri,
-								tiddlyweb_cookie, emitter, store,
-								Tiddler, tiddlerText, wikify, false);
 						}
+						getData(memcache, collection_uri,
+							tiddlyweb_cookie, emitter, store, Tiddler,
+							tiddlerText, wikify, false);
 					});
 				} else {
 					var memcacheKey = sha1Hex(result + collection_uri);
@@ -144,7 +143,8 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
 				console.log('rsc', response.statusCode);
 				if (response.statusCode === '302' &&
 						response.headers.location.indexOf('/challenge')) {
-					emitter.emit('output', 'Error getting collection: challenger.');
+					emitter.emit('output', processData(store,
+							tiddlerText, wikify));
 				} else {
 					response.setEncoding('utf8');
 					var content = '';
@@ -156,7 +156,8 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
 						if (memcache !== 'undefined' && memcacheKey) {
 							memcache.set(memcacheKey, content, 0, function() {});
 						}
-						twik.loadRemoteTiddlers(store, Tiddler, collection_uri, content);
+						twik.loadRemoteTiddlers(store, Tiddler,
+							collection_uri, content);
 						var output = processData(store, tiddlerText, wikify);
 						emitter.emit('output', output);
 					});
@@ -164,7 +165,7 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
 			});
 
 		request.on('error', function(err) {
-			emitter.emit('output', 'Error getting collection: ' + err);
+			emitter.emit('output', processData(store, tiddlerText, wikify));
 		});
 		request.end();
 	} else {
