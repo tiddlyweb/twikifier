@@ -90,7 +90,6 @@ var processRequest = function(args, emitter) {
 							var output = processRequest(args, emitter);
 							output.action()
 						}
-						console.log('memcache getData 1');
 						getData(memcache, collection_uri,
 							tiddlyweb_cookie, emitter, store, Tiddler,
 							tiddlerText, wikify, false);
@@ -105,12 +104,10 @@ var processRequest = function(args, emitter) {
 						} else {
 							var data = result;
 							if (!data) {
-								console.log('memcache getData 2');
 								getData(memcache, collection_uri,
 									tiddlyweb_cookie, emitter, store, Tiddler,
 									tiddlerText, wikify, memcacheKey);
 							} else {
-								console.log('memcache load remote');
 								console.log('using cache for', collection_uri);
 								twik.loadRemoteTiddlers(store, Tiddler,
 									collection_uri, data);
@@ -129,7 +126,6 @@ var processRequest = function(args, emitter) {
 
 getData = function(memcache, collection_uri, tiddlyweb_cookie,
 		emitter, store, Tiddler, tiddlerText, wikify, memcacheKey) {
-	console.log('starting getData, cu', collection_uri);
 	if (/<</.test(tiddlerText)) {
 		console.log('not using cache for', collection_uri);
 		var parsed_uri = url.parse(collection_uri),
@@ -147,7 +143,6 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
 				}
 			},
 			request = http.request(request_options, function(response) {
-				console.log('requesting', parsed_uri.pathname, parsed_uri.port, response.statusCode);
 				if (response.statusCode === '302' &&
 						response.headers.location.indexOf('/challenge')) {
 					emitter.emit('output', processData(store,
@@ -175,11 +170,8 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
 		});
 		request.end();
 	} else {
-		console.log('processing', tiddlerText);
 		var output = processData(store, tiddlerText, wikify);
-		console.log('outputting', output);
 		emitter.emit('output', output);
-		console.log('emitted event');
 	}
 };
 
@@ -203,7 +195,6 @@ server.addListener('connection', function(c) {
 			args = dataString.split(/\x00/),
 			output = processRequest(args);
 		output.emitter.on('output', function(data) {
-			console.log('output event with', data);
 			c.end(data);
 			c.destroy();
 		});
