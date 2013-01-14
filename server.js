@@ -59,6 +59,7 @@ var getNamespace = function(uri) {
 
 var processRequest = function(args, emitter) {
 	emitter = emitter || new Emitter();
+	return {emitter: emitter, action: function () {
 
 	var collection_uri = args[0],
 		tiddlerText = args[1],
@@ -86,8 +87,10 @@ var processRequest = function(args, emitter) {
 							console.error(err);
 						}
 						if (result) {
-							return processRequest(args, emitter);
+							var output = processRequest(args, emitter);
+							output.action()
 						}
+						console.log('memcache getData 1');
 						getData(memcache, collection_uri,
 							tiddlyweb_cookie, emitter, store, Tiddler,
 							tiddlerText, wikify, false);
@@ -102,10 +105,12 @@ var processRequest = function(args, emitter) {
 						} else {
 							var data = result;
 							if (!data) {
+								console.log('memcache getData 2');
 								getData(memcache, collection_uri,
 									tiddlyweb_cookie, emitter, store, Tiddler,
 									tiddlerText, wikify, memcacheKey);
 							} else {
+								console.log('memcache load remote');
 								console.log('using cache for', collection_uri);
 								twik.loadRemoteTiddlers(store, Tiddler,
 									collection_uri, data);
@@ -118,11 +123,13 @@ var processRequest = function(args, emitter) {
 			}
 		});
 	}
-	return emitter;
+	}};
+	// return emitter;
 };
 
 getData = function(memcache, collection_uri, tiddlyweb_cookie,
 		emitter, store, Tiddler, tiddlerText, wikify, memcacheKey) {
+	console.log('starting getData, cu', collection_uri);
 	if (/<</.test(tiddlerText)) {
 		console.log('not using cache for', collection_uri);
 		var parsed_uri = url.parse(collection_uri),
@@ -140,7 +147,7 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
 				}
 			},
 			request = http.request(request_options, function(response) {
-				console.log('rsc', response.statusCode);
+				console.log('requesting', parsed_uri.pathname, parsed_uri.port, response.statusCode);
 				if (response.statusCode === '302' &&
 						response.headers.location.indexOf('/challenge')) {
 					emitter.emit('output', processData(store,
@@ -149,7 +156,6 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
 					response.setEncoding('utf8');
 					var content = '';
 					response.on('data', function(chunk) {
-						console.log('got chunk', chunk);
 						content += chunk;
 					});
 					response.on('end', function() {
@@ -169,8 +175,11 @@ getData = function(memcache, collection_uri, tiddlyweb_cookie,
 		});
 		request.end();
 	} else {
+		console.log('processing', tiddlerText);
 		var output = processData(store, tiddlerText, wikify);
+		console.log('outputting', output);
 		emitter.emit('output', output);
+		console.log('emitted event');
 	}
 };
 
@@ -193,15 +202,12 @@ server.addListener('connection', function(c) {
 		var dataString = data.toString().replace(/(\r|\n)+$/, ''),
 			args = dataString.split(/\x00/),
 			output = processRequest(args);
-		if (typeof output === "string") {
-			c.end(output);
+		output.emitter.on('output', function(data) {
+			console.log('output event with', data);
+			c.end(data);
 			c.destroy();
-		} else {
-			output.on('output', function(data) {
-				c.end(data);
-				c.destroy();
-			});
-		}
+		});
+		output.action()
 	});
 	// timeout after 10 seconds of inactivity
 	c.setTimeout(10000);

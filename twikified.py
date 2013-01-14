@@ -59,14 +59,6 @@ def render(tiddler, environ):
     so that private content can be retrieved by nodejs (over HTTP).
     """
 
-    if 'twikified.seen_titles' in environ:
-        seen_titles = environ['twikified.seen_titles']
-    else:
-        seen_titles = []
-
-    parser = html5lib.HTMLParser(
-            tree=html5lib.treebuilders.getTreeBuilder("dom"))
-
     if tiddler.recipe:
         collection = recipe_url(environ, Recipe(tiddler.recipe)) + '/tiddlers'
     else:
@@ -128,8 +120,21 @@ The raw text is given below.</div>
             twik_socket.close()
             return output
 
-    # process for transclusions
-    # make the socket output unicode first
+    return _process_for_transclusion(output, tiddler, environ)
+
+
+def _process_for_transclusion(output, tiddler, environ):
+    """
+    Process the output for transclusions.
+    """
+    if 'twikified.seen_titles' in environ:
+        seen_titles = environ['twikified.seen_titles']
+    else:
+        seen_titles = []
+
+    parser = html5lib.HTMLParser(
+            tree=html5lib.treebuilders.getTreeBuilder("dom"))
+
     output = output.decode('utf-8', 'replace')
     try:
         dom = parser.parse('<div>' + output + '</div>')
@@ -142,22 +147,25 @@ The raw text is given below.</div>
                     try:
                         span_class = span.attributes['class'].value
                         if span_class.startswith('@'):
-                            interior_bag = span_class[1:] + '_public'
+                            interior_recipe = span_class[1:] + '_public'
                         else:
-                            interior_bag = ''
+                            interior_recipe = ''
                     except KeyError:
-                        interior_bag = ''
-                    title_semaphore = '%s:%s' % (interior_title, interior_bag)
+                        interior_recipe = ''
+                    title_semaphore = '%s:%s' % (interior_title,
+                            interior_recipe)
                     if title_semaphore not in seen_titles:
                         seen_titles.append(title_semaphore)
                         interior_tiddler = Tiddler(interior_title)
                         try:
                             store = environ['tiddlyweb.store']
-                            if interior_bag:
-                                public_bag = store.get(Bag(interior_bag))
-                                public_bag.policy.allows(
-                                        environ['tiddlyweb.usersign'], 'read')
-                                interior_tiddler.bag = interior_bag
+                            if interior_recipe:
+                                recipe = store.get(Recipe(interior_recipe))
+                                interior_tiddler.recipe = interior_recipe
+                                interior_tiddler.bag = (
+                                        determine_bag_from_recipe(
+                                            recipe, interior_tiddler,
+                                            environ).name)
                             else:
                                 if tiddler.recipe:
                                     interior_tiddler.recipe = tiddler.recipe
@@ -168,6 +176,9 @@ The raw text is given below.</div>
                                                 environ).name)
                                 else:
                                     interior_tiddler.bag = tiddler.bag
+                            interior_bag = store.get(Bag(interior_tiddler.bag))
+                            interior_bag.policy.allows(
+                                    environ['tiddlyweb.usersign'], 'read')
                             interior_tiddler = store.get(interior_tiddler)
                         except (StoreError, PermissionsError):
                             continue
