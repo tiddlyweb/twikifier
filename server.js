@@ -5,6 +5,7 @@
 process.title = 'twikifier'; // helpful for watching top and ps
 
 var net = require('net'),
+        fs = require('fs'),
 	jsdom = require('jsdom'),
 	jquery = require('jQuery'),
 	http = require('http'),
@@ -19,6 +20,7 @@ var Emitter = require('events').EventEmitter,
 	server = net.createServer({allowHalfOpen: true}),
 	memcache = new Memcached('127.0.0.1:11211'),
 	wikifiers = {},
+        socketPath = '/tmp/wst.sock',
 	getData;
 
 var window = jsdom.jsdom('<html><head></head><body></body></html>')
@@ -204,5 +206,8 @@ server.addListener('connection', function(c) {
 	c.setTimeout(10000);
 });
 
-server.listen('/tmp/wst.sock');
-server.maxConnections = 20;
+// unlink the socket before starting
+fs.unlink(socketPath, function() {
+    server.maxConnections = 50;
+    server.listen(socketPath);
+});

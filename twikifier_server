@@ -4,11 +4,8 @@ USER=tiddlyweb
 NODE_PATH=/usr/local/lib/node
 DAEMON=/home/cdent/src/twikifier/server.js
 NODE_BIN=/usr/local/bin/node
-SOCKET=/tmp/wst.sock
 
 set -e
-
-rm SOCKET || true
 
 echo "(re-)starting server.js" | logger -p syslog.info -t twikifier
 sudo -u $USER $NODE_BIN $DAEMON 2>&1 | logger -p syslog.info -t twikifier
