@@ -60,5 +60,5 @@ config.evaluateMacroParameters = 'none';
 return [wikify, store, Tiddler];
 };
 
-if (typeof exports != "undefined")
+if (exports !== "undefined")
     exports.createWikifier = createWikifier;
