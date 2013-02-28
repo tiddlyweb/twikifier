@@ -10,6 +10,7 @@ var net = require('net'),
 	jquery = require('jQuery'),
 	http = require('http'),
 	url = require('url'),
+	Memcached = require('memcached'),
 	crypto = require('crypto'),
 	uuid = require('node-uuid'),
 	twikifier = require('./twikifier'),
@@ -17,8 +18,10 @@ var net = require('net'),
 
 var Emitter = require('events').EventEmitter,
 	server = net.createServer({allowHalfOpen: true}),
+	memcache = new Memcached('127.0.0.1:11211'),
 	socketPath = '/tmp/wst.sock',
-	getData;
+	getData,
+	getContainerInfo;
 
 var formatText = function(place, wikify, text, tiddler) {
 	wikify(text, place, null, tiddler);
@@ -38,6 +41,20 @@ var processData = function(store, tiddlerText, wikify, jQuery) {
 
 	return output;
 };
+
+// use a bag's namespace if possible, otherwise use any
+var getNamespace = function(uri) {
+	var match = /\/(bags|recipes)\/([^\/]+)/.exec(uri),
+		namespace;
+
+	if (!match || match[1] === 'recipes') {
+		namespace = 'any_namespace';
+	} else {
+		namespace = match[1] + ':' + match[2] + '_namespace';
+	}
+	return sha1Hex(namespace);
+};
+
 
 var processRequest = function(args, emitter) {
 	emitter = emitter || new Emitter();
@@ -63,21 +80,84 @@ var processRequest = function(args, emitter) {
 getData = function(collection_uri, tiddlyweb_cookie,
 		emitter, store, Tiddler, tiddlerText, wikify, jQuery) {
 	if (/<</.test(tiddlerText)) { // augment the store with other tiddlers
-		console.log('getting macro tiddlers via', collection_uri);
-		var parsed_uri = url.parse(collection_uri),
-			request_options = {
-				hostname: parsed_uri.hostname,
-				port: parsed_uri.port || 80,
-				method: 'GET',
-				path: parsed_uri.pathname,
-				headers: {
-					'host': parsed_uri.hostname,
-					'accept': 'application/json',
-					'cookie': tiddlyweb_cookie,
-					'user-agent': 'twikifier server.js',
-					'x-controlview': 'false'
+		if (!memcache) {
+			console.log('getting macro tiddlers via', collection_uri);
+			getContainerInfo(emitter, collection_uri, tiddlyweb_cookie, store,
+					tiddlerText, wikify, jQuery, Tiddler);
+			return;
+		} else {
+			var namespace = getNamespace(collection_uri);
+			memcache.get(namespace, function(err, result) {
+				if (err) {
+					console.error('namespace get', err);
+					emitter.emit('output', 'Error getting namespace key ' + err);
+					return;
+				} else {
+					if (!result) {
+						result = uuid();
+						memcache.set(namespace, result, 0, function(err, result) {
+							if (err) {
+								console.error('error setting namespace', err);
+							}
+							if (result) {
+								var args = [collection_uri, tiddlerText,
+									tiddlyweb_cookie],
+									output = processRequest(args, emitter);
+								return output.action();
+							} 
+						});
+					} else {
+						var memcacheKey = sha1Hex(result + collection_uri);
+						memcache.get(memcacheKey, function(err, result) {
+							if (err) {
+								console.error('error getting data', err);
+								emitter.emit('output',
+									'Error getting collection key ' + err); 
+								return;
+							}
+							if (!result) {
+								console.log('not using cache for',
+									collection_uri);
+								getContainerInfo(emitter, collection_uri,
+									tiddlyweb_cookie, store, tiddlerText,
+									wikify, jQuery, Tiddler);
+								return;
+							} else {
+								console.log('using cache for', collection_uri);
+								twik.loadRemoteTiddlers(store, Tiddler,
+									collection_uri, result);
+								var output = processData(store, tiddlerText,
+									wikify, jQuery);
+								emitter.emit('output', output);
+								return;
+							}
+						});
+					}
 				}
-			},
+			});
+		}
+	} else { // no special macros, just wikify
+		console.log('no macro tiddlers needed from', collection_uri);
+		emitter.emit('output', processData(store, tiddlerText, wikify, jQuery));
+	}
+};
+
+getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
+		store, tiddlerText, wikify, jQuery, Tiddler) {
+	var parsed_uri = url.parse(collection_uri),
+		request_options = {
+			hostname: parsed_uri.hostname,
+			port: parsed_uri.port || 80,
+			method: 'GET',
+			path: parsed_uri.pathname,
+			headers: {
+				'host': parsed_uri.hostname,
+				'accept': 'application/json',
+				'cookie': tiddlyweb_cookie,
+				'user-agent': 'twikifier server.js',
+				'x-controlview': 'false'
+			}
+		},
 		request = http.request(request_options, function(response) {
 			if (response.statusCode === '302' &&
 					response.headers.location.indexOf('/challenge')) {
@@ -99,16 +179,12 @@ getData = function(collection_uri, tiddlyweb_cookie,
 			}
 		});
 
-		request.on('error', function(err) {
-			emitter.emit('output', processData(store, tiddlerText,
-					wikify, jQuery));
-		});
+	request.on('error', function(err) {
+		emitter.emit('output', processData(store, tiddlerText,
+				wikify, jQuery));
+	});
 
-		request.end();
-	} else { // no special macros, just wikify
-		console.log('no macro tiddlers needed from', collection_uri);
-		emitter.emit('output', processData(store, tiddlerText, wikify, jQuery));
-	}
+	request.end();
 };
 
 server.addListener('connection', function(c) {
