@@ -24,7 +24,7 @@ goes like this:
 
 One you have npm, install jsdom, htmlparser, jQuery (case sensitive), tav, location, navigator and xmlhttprequest
 
-    npm install net url jsdom@0.2.15 htmlparser jQuery tav location navigator xmlhttprequest
+    npm install net url jsdom htmlparser jQuery tav location navigator xmlhttprequest
 
 If you want to use server.js you also need:
 
