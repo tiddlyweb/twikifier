@@ -56,14 +56,14 @@ var processRequest = function(args, emitter) {
 			Tiddler = globals[2];
 
 		getData(collection_uri, tiddlyweb_cookie, emitter, store,
-				Tiddler, tiddlerText, wikify, false, jQuery);
+				Tiddler, tiddlerText, wikify, jQuery);
 	}};
 };
 
 getData = function(collection_uri, tiddlyweb_cookie,
 		emitter, store, Tiddler, tiddlerText, wikify, jQuery) {
 	if (/<</.test(tiddlerText)) { // augment the store with other tiddlers
-		console.log('not using cache for', collection_uri);
+		console.log('getting macro tiddlers for', collection_uri);
 		var parsed_uri = url.parse(collection_uri),
 			request_options = {
 				hostname: parsed_uri.hostname,
