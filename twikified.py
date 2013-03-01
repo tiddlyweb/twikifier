@@ -110,7 +110,7 @@ def render(tiddler, environ):
                 twik_socket.shutdown(socket.SHUT_RDWR)
                 twik_socket.close()
         except (socket.error, IOError), exc:
-            if exc.errno == 57:
+            if hasattr(exc 'errno') and exc.errno == 57:
                 twik_socket.close()
             else:
                 LOGGER.warn('twikifier error during data processing: %s', exc)
