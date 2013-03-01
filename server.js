@@ -221,6 +221,7 @@ server.addListener('connection', function(c) {
 			args = dataString.split(/\x00/),
 			output = processRequest(args, id);
 		output.emitter.on('output', function(data) {
+			console.log('ending request', id);
 			c.end(data);
 			c.destroy();
 		});
