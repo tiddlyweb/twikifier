@@ -83,15 +83,13 @@ getData = function(collection_uri, tiddlyweb_cookie,
 		if (!memcache) {
 			console.log('getting macro tiddlers via', collection_uri);
 			getContainerInfo(emitter, collection_uri, tiddlyweb_cookie, store,
-					tiddlerText, wikify, jQuery, Tiddler);
-			return;
+					tiddlerText, wikify, jQuery, Tiddler, false);
 		} else {
 			var namespace = getNamespace(collection_uri);
 			memcache.get(namespace, function(err, result) {
 				if (err) {
 					console.error('namespace get', err);
 					emitter.emit('output', 'Error getting namespace key ' + err);
-					return;
 				} else {
 					if (!result) {
 						result = uuid();
@@ -104,7 +102,7 @@ getData = function(collection_uri, tiddlyweb_cookie,
 									tiddlyweb_cookie],
 									output = processRequest(args, emitter);
 								return output.action();
-							} 
+							}
 						});
 					} else {
 						var memcacheKey = sha1Hex(result + collection_uri);
@@ -112,16 +110,15 @@ getData = function(collection_uri, tiddlyweb_cookie,
 							if (err) {
 								console.error('error getting data', err);
 								emitter.emit('output',
-									'Error getting collection key ' + err); 
-								return;
+									'Error getting collection key ' + err);
 							}
 							if (!result) {
 								console.log('not using cache for',
 									collection_uri);
 								getContainerInfo(emitter, collection_uri,
 									tiddlyweb_cookie, store, tiddlerText,
-									wikify, jQuery, Tiddler);
-								return;
+									wikify, jQuery, Tiddler, memcache,
+									memcacheKey);
 							} else {
 								console.log('using cache for', collection_uri);
 								twik.loadRemoteTiddlers(store, Tiddler,
@@ -129,21 +126,20 @@ getData = function(collection_uri, tiddlyweb_cookie,
 								var output = processData(store, tiddlerText,
 									wikify, jQuery);
 								emitter.emit('output', output);
-								return;
 							}
 						});
 					}
 				}
+				return;
 			});
 		}
 	} else { // no special macros, just wikify
-		console.log('no macro tiddlers needed from', collection_uri);
 		emitter.emit('output', processData(store, tiddlerText, wikify, jQuery));
 	}
 };
 
 getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
-		store, tiddlerText, wikify, jQuery, Tiddler) {
+		store, tiddlerText, wikify, jQuery, Tiddler, memcache, memcacheKey) {
 	var parsed_uri = url.parse(collection_uri),
 		request_options = {
 			hostname: parsed_uri.hostname,
@@ -170,6 +166,9 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 					content += chunk;
 				});
 				response.on('end', function() {
+					if (memcache && memcacheKey) {
+						memcache.set(memcacheKey, content, 0, function() {});
+					}
 					twik.loadRemoteTiddlers(store, Tiddler,
 						collection_uri, content);
 					var output = processData(store, tiddlerText,
