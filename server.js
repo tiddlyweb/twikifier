@@ -13,13 +13,14 @@ var net = require('net'),
 	Memcached = require('memcached'),
 	crypto = require('crypto'),
 	uuid = require('node-uuid'),
+	cluster = require('cluster'),
 	twikifier = require('./twikifier'),
 	twik = require('./twik');
 
 var Emitter = require('events').EventEmitter,
-	server = net.createServer({allowHalfOpen: true}),
 	memcache = new Memcached('127.0.0.1:11211'),
 	socketPath = '/tmp/wst.sock',
+	maxWorkers = 4,
 	getData,
 	tiddlersFromCache,
 	getContainerInfo;
@@ -209,39 +210,62 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 	request.end();
 };
 
-server.addListener('connection', function(c) {
-	var data = '',
-		id = uuid();
-	c.addListener('timeout', function() {
-		c.end('timeout on socket communication');
-		c.destroy();
-		console.error('timeout event on connection', c, id);
-	});
-	c.addListener('error', function(err) {
-		c.end('error event on connection');
-		c.destroy();
-		console.error('error event on connection', c, err, id);
-	});
-	c.addListener('data', function(chunk) {
-		data += chunk;
-	});
-	c.addListener('end', function() {
-		var dataString = data.toString().replace(/(\r|\n)+$/, ''),
-			args = dataString.split(/\x00/),
-			output = processRequest(args, id);
-		output.emitter.on('output', function(data) {
-			console.log('ending request', id);
-			c.end(data);
-			c.destroy();
-		});
-		output.action();
-	});
-	// timeout after 10 seconds of inactivity
-	c.setTimeout(10000);
-});
+// startup
 
-// unlink the socket before starting
-fs.unlink(socketPath, function() {
-	server.maxConnections = 50;
-	server.listen(socketPath);
-});
+function startUp() {
+	console.log('starting up');
+	if (cluster.isMaster) {
+		fs.unlink(socketPath, function() {
+			console.log('master wants to fork');
+			for (var i = 0; i < maxWorkers; i++) {
+				console.log('forking');
+				cluster.fork();
+			}
+			cluster.on('exit', function(worker, code, signal) {
+				var exitCode = worker.process.exitCode;
+				console.log('worker ' + worker.process.pid + ' died ('+exitCode+'). restarting...');
+				cluster.fork();
+			});
+		});
+	} else { // in a child
+		console.log('starting worker');
+		var server = net.createServer({allowHalfOpen: true});
+		server.maxConnections = 50;
+		server.listen(socketPath);
+
+		server.addListener('connection', function(c) {
+			var data = '',
+				id = uuid();
+			c.addListener('timeout', function() {
+				c.end('timeout on socket communication');
+				c.destroy();
+				console.error('timeout event on connection', c, id);
+				process.exit(1);
+			});
+			c.addListener('error', function(err) {
+				c.end('error event on connection');
+				c.destroy();
+				console.error('error event on connection', c, err, id);
+				process.exit(1);
+			});
+			c.addListener('data', function(chunk) {
+				data += chunk;
+			});
+			c.addListener('end', function() {
+				var dataString = data.toString().replace(/(\r|\n)+$/, ''),
+					args = dataString.split(/\x00/),
+					output = processRequest(args, id);
+				output.emitter.on('output', function(data) {
+					console.log('ending request', id);
+					c.end(data);
+					c.destroy();
+				});
+				output.action();
+			});
+			// timeout after 10 seconds of inactivity
+			c.setTimeout(10000);
+		});
+	}
+}
+
+startUp();
