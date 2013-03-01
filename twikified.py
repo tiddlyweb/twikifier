@@ -38,6 +38,7 @@ from tiddlyweb.util import renderable
 from tiddlyweb.web.util import (escape_attribute_value, recipe_url, bag_url)
 
 REVISION_RENDERER = 'tiddlywebplugins.wikklytextrender'
+LOGGER = logging.getLogger('tiddlywebplugins.twikified')
 
 
 def init(config):
@@ -75,50 +76,62 @@ def render(tiddler, environ):
     socket_path = environ['tiddlyweb.config'].get('twikified.socket',
             '/tmp/wst.sock')
     twik_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    twik_socket.settimeout(15.0)
 
     try:
-        twik_socket.connect(socket_path)
-    except (socket.error, IOError), exc:
-        output = """
-<div class='error'>There was a problem rendering this tiddler.
-The raw text is given below.</div>
-<pre class='wikitext'>%s</pre>
-""" % (escape_attribute_value(tiddler.text))
-        logging.warn('twikifier socket connect failed: %s', exc)
-        twik_socket.shutdown(socket.SHUT_RDWR)
-        twik_socket.close()
-        return output
-
-    try:
-        twik_socket.sendall('%s\x00%s\x00%s\n' % (collection,
-            tiddler.text.encode('utf-8', 'replace'),
-            tiddlyweb_cookie))
-        twik_socket.shutdown(socket.SHUT_WR)
-
-        output = ''
         try:
-            while True:
-                data = twik_socket.recv(1024)
-                if data:
-                    output += data
-                else:
-                    break
-        finally:
-            twik_socket.shutdown(socket.SHUT_RDWR)
-            twik_socket.close()
-    except (socket.error, IOError), exc:
-        if exc.errno == 57:
-            twik_socket.close()
-        else:
-            logging.warn('twikifier error during data processing: %s', exc)
+            twik_socket.connect(socket_path)
+        except (socket.error, IOError), exc:
             output = """
     <div class='error'>There was a problem rendering this tiddler.
     The raw text is given below.</div>
     <pre class='wikitext'>%s</pre>
     """ % (escape_attribute_value(tiddler.text))
+            LOGGER.warn('twikifier socket connect failed: %s', exc)
             twik_socket.shutdown(socket.SHUT_RDWR)
             twik_socket.close()
             return output
+
+        try:
+            twik_socket.sendall('%s\x00%s\x00%s\n' % (collection,
+                tiddler.text.encode('utf-8', 'replace'),
+                tiddlyweb_cookie))
+            twik_socket.shutdown(socket.SHUT_WR)
+
+            output = ''
+            try:
+                while True:
+                    data = twik_socket.recv(1024)
+                    if data:
+                        output += data
+                    else:
+                        break
+            finally:
+                twik_socket.shutdown(socket.SHUT_RDWR)
+                twik_socket.close()
+        except (socket.error, IOError), exc:
+            if exc.errno == 57:
+                twik_socket.close()
+            else:
+                LOGGER.warn('twikifier error during data processing: %s', exc)
+                output = """
+        <div class='error'>There was a problem rendering this tiddler.
+        The raw text is given below.</div>
+        <pre class='wikitext'>%s</pre>
+        """ % (escape_attribute_value(tiddler.text))
+                twik_socket.shutdown(socket.SHUT_RDWR)
+                twik_socket.close()
+                return output
+    except socket.timeout:
+        LOGGER.warn('twikifier socket timeout')
+        output = """
+<div class='error'>There was a timeout problem rendering this tiddler.
+The raw text is given below.</div>
+<pre class='wikitext'>%s</pre>
+        """ % (escape_attribute_value(tiddler.text))
+        twik_socket.shutdown(socket.SHUT_RDWR)
+        twik_socket.close()
+        return output
 
     return _process_for_transclusion(output, tiddler, environ)
 
@@ -198,7 +211,7 @@ def _process_for_transclusion(output, tiddler, environ):
         # If expat couldn't process the output, we need to make it
         # unicode as what came over the socket was utf-8 but expat
         # needs that in the first place.
-        logging.warn('got expat error: %s:%s %s',
+        LOGGER.warn('got expat error: %s:%s %s',
                 tiddler.bag, tiddler.title, exc)
         output = output.decode('utf-8', 'replace')
     return output
