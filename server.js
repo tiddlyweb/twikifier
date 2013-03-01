@@ -21,6 +21,7 @@ var Emitter = require('events').EventEmitter,
 	memcache = new Memcached('127.0.0.1:11211'),
 	socketPath = '/tmp/wst.sock',
 	getData,
+	tiddlersFromCache,
 	getContainerInfo;
 
 var formatText = function(place, wikify, text, tiddler) {
@@ -78,6 +79,34 @@ var processRequest = function(args, id, emitter) {
 	}};
 };
 
+tiddlersFromCache = function(memcacheKey, collection_uri, id, emitter,
+		tiddlyweb_cookie, store, tiddlerText, wikify, jQuery, Tiddler,
+		memcache) {
+	memcache.get(memcacheKey, function(err, result) {
+		if (err) {
+			console.error('error getting data', err, id);
+			emitter.emit('output',
+				'Error getting collection key ' + err);
+		} else {
+			if (!result) {
+				console.log('not using cache for', collection_uri, id);
+				getContainerInfo(emitter, collection_uri, tiddlyweb_cookie,
+					store, tiddlerText, wikify, jQuery, Tiddler, memcache,
+					memcacheKey, id);
+			} else {
+				console.log('using cache for', collection_uri, id);
+				var tiddlerEmitter = twik.loadRemoteTiddlers(store, Tiddler,
+					collection_uri, result);
+				tiddlerEmitter.on('done', function(tiddlerStore) {
+					console.log('emitting for', collection_uri, id);
+					emitter.emit('output', processData(tiddlerStore,
+							tiddlerText, wikify, jQuery));
+				});
+			}
+		}
+	});
+};
+
 getData = function(collection_uri, tiddlyweb_cookie,
 		emitter, store, Tiddler, tiddlerText, wikify, jQuery, id) {
 	if (/<</.test(tiddlerText)) { // augment the store with other tiddlers
@@ -114,30 +143,9 @@ getData = function(collection_uri, tiddlyweb_cookie,
 						});
 					} else {
 						var memcacheKey = sha1Hex(result + collection_uri);
-						memcache.get(memcacheKey, function(err, result) {
-							if (err) {
-								console.error('error getting data', err, id);
-								emitter.emit('output',
-									'Error getting collection key ' + err);
-							} else {
-								if (!result) {
-									console.log('not using cache for',
-										collection_uri, id);
-									getContainerInfo(emitter, collection_uri,
-										tiddlyweb_cookie, store, tiddlerText,
-										wikify, jQuery, Tiddler, memcache,
-										memcacheKey, id);
-								} else {
-									console.log('using cache for', collection_uri, id);
-									twik.loadRemoteTiddlers(store, Tiddler,
-										collection_uri, result);
-									var output = processData(store, tiddlerText,
-										wikify, jQuery);
-									console.log('emitting for', collection_uri, id);
-									emitter.emit('output', output);
-								}
-							}
-						});
+						tiddlersFromCache(memcacheKey, collection_uri, id,
+								emitter, tiddlyweb_cookie, store, tiddlerText,
+								wikify, jQuery, Tiddler, memcache);
 					}
 				}
 			});
@@ -182,12 +190,13 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 						console.log('setting cache for', collection_uri, id);
 						memcache.set(memcacheKey, content, 0, function() {});
 					}
-					twik.loadRemoteTiddlers(store, Tiddler,
+					var tiddlerEmitter = twik.loadRemoteTiddlers(store, Tiddler,
 						collection_uri, content);
-					var output = processData(store, tiddlerText,
-						wikify, jQuery);
-					console.log('emitting after http load', id);
-					emitter.emit('output', output);
+					tiddlerEmitter.on('done', function(tiddlerStore) {
+						console.log('emitting after http load', id);
+						emitter.emit('output', processData(tiddlerStore,
+								tiddlerText, wikify, jQuery));
+					});
 				});
 			}
 		});

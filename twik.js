@@ -2,6 +2,9 @@
 
 "use strict";
 
+var async = require('async'),
+	Emitter = require('events').EventEmitter;
+
 // utility funcions for twikify and twikifier related things
 var twik = {};
 
@@ -18,23 +21,31 @@ twik.formatText = function(window, wikify, text) {
 };
 
 twik.loadRemoteTiddlers = function(store, Tiddler, uri, jsonTiddlers) {
-    var tiddlers = JSON.parse(jsonTiddlers),
-		i,
-		storeURL;
-    for (i = 0; i < tiddlers.length; i++) {
-        var t = new Tiddler(tiddlers[i].title);
-        //t.text = tiddlers[i].text;
-        t.tags = tiddlers[i].tags;
-        t.modifier = tiddlers[i].modifier;
-        t.modified = Date.convertFromYYYYMMDDHHMM(tiddlers[i].modified);
-        t.created = Date.convertFromYYYYMMDDHHMM(tiddlers[i].created);
-        t.fields = tiddlers[i].fields;
+    var tiddlers = JSON.parse(jsonTiddlers), // TODO: make async?
+		storeURL,
+		emitter = new Emitter();
+
+	function addToStore(item, errcallback) {
+        var t = new Tiddler(item.title);
+        t.tags = item.tags;
+        t.modifier = item.modifier;
+        t.modified = Date.convertFromYYYYMMDDHHMM(item.modified);
+        t.created = Date.convertFromYYYYMMDDHHMM(item.created);
+        t.fields = item.fields;
         store.addTiddler(t);
+		errcallback();
     }
-    storeURL = new Tiddler('SiteUrl');
-    storeURL.text = uri;
-    storeURL.tags = ['excludeLists'];
-    store.addTiddler(storeURL);
+
+	function finishUp(err) {
+		storeURL = new Tiddler('SiteUrl');
+		storeURL.text = uri;
+		storeURL.tags = ['excludeLists'];
+		store.addTiddler(storeURL);
+		emitter.emit('done', store);
+	}
+
+	async.eachSeries(tiddlers, addToStore, finishUp);
+	return emitter;
 };
 
 
