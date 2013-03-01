@@ -56,8 +56,9 @@ var getNamespace = function(uri) {
 };
 
 
-var processRequest = function(args, emitter) {
+var processRequest = function(args, id, emitter) {
 	emitter = emitter || new Emitter();
+	console.log('starting request', id);
 	return {emitter: emitter, action: function () {
 
 		var window = jsdom.jsdom('<html><head></head><body></body></html>')
@@ -73,73 +74,83 @@ var processRequest = function(args, emitter) {
 			Tiddler = globals[2];
 
 		getData(collection_uri, tiddlyweb_cookie, emitter, store,
-				Tiddler, tiddlerText, wikify, jQuery);
+				Tiddler, tiddlerText, wikify, jQuery, id);
 	}};
 };
 
 getData = function(collection_uri, tiddlyweb_cookie,
-		emitter, store, Tiddler, tiddlerText, wikify, jQuery) {
+		emitter, store, Tiddler, tiddlerText, wikify, jQuery, id) {
 	if (/<</.test(tiddlerText)) { // augment the store with other tiddlers
 		if (!memcache) {
-			console.log('getting macro tiddlers via', collection_uri);
+			console.log('getting macro tiddlers via', collection_uri, id);
 			getContainerInfo(emitter, collection_uri, tiddlyweb_cookie, store,
-					tiddlerText, wikify, jQuery, Tiddler, false);
+					tiddlerText, wikify, jQuery, Tiddler, false, id);
 		} else {
 			var namespace = getNamespace(collection_uri);
 			memcache.get(namespace, function(err, result) {
 				if (err) {
-					console.error('namespace get', err);
+					console.error('namespace get', err, id);
 					emitter.emit('output', 'Error getting namespace key ' + err);
 				} else {
 					if (!result) {
 						result = uuid();
 						memcache.set(namespace, result, 0, function(err, result) {
 							if (err) {
-								console.error('error setting namespace', err);
-							}
-							if (result) {
-								var args = [collection_uri, tiddlerText,
-									tiddlyweb_cookie],
-									output = processRequest(args, emitter);
-								return output.action();
+								console.error('error setting namespace', err, id);
+							} else {
+								console.log('no key for namespace', id);
+								if (result) {
+									// use the original emitter
+									console.log('re-requesting for', collection_uri, id);
+									getData(collection_uri, tiddlyweb_cookie,
+										emitter, store, Tiddler, tiddlerText,
+										wikify, jQuery, id);
+								} else {
+									console.log('non-error namespace getting error', id);
+									emitter.emit('output',
+										'no key for namespace');
+								}
 							}
 						});
 					} else {
 						var memcacheKey = sha1Hex(result + collection_uri);
 						memcache.get(memcacheKey, function(err, result) {
 							if (err) {
-								console.error('error getting data', err);
+								console.error('error getting data', err, id);
 								emitter.emit('output',
 									'Error getting collection key ' + err);
-							}
-							if (!result) {
-								console.log('not using cache for',
-									collection_uri);
-								getContainerInfo(emitter, collection_uri,
-									tiddlyweb_cookie, store, tiddlerText,
-									wikify, jQuery, Tiddler, memcache,
-									memcacheKey);
 							} else {
-								console.log('using cache for', collection_uri);
-								twik.loadRemoteTiddlers(store, Tiddler,
-									collection_uri, result);
-								var output = processData(store, tiddlerText,
-									wikify, jQuery);
-								emitter.emit('output', output);
+								if (!result) {
+									console.log('not using cache for',
+										collection_uri, id);
+									getContainerInfo(emitter, collection_uri,
+										tiddlyweb_cookie, store, tiddlerText,
+										wikify, jQuery, Tiddler, memcache,
+										memcacheKey, id);
+								} else {
+									console.log('using cache for', collection_uri, id);
+									twik.loadRemoteTiddlers(store, Tiddler,
+										collection_uri, result);
+									var output = processData(store, tiddlerText,
+										wikify, jQuery);
+									console.log('emitting for', collection_uri, id);
+									emitter.emit('output', output);
+								}
 							}
 						});
 					}
 				}
-				return;
 			});
 		}
 	} else { // no special macros, just wikify
+		console.log('emitting no macros', collection_uri, id);
 		emitter.emit('output', processData(store, tiddlerText, wikify, jQuery));
 	}
 };
 
 getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
-		store, tiddlerText, wikify, jQuery, Tiddler, memcache, memcacheKey) {
+		store, tiddlerText, wikify, jQuery, Tiddler, memcache, memcacheKey,
+		id) {
 	var parsed_uri = url.parse(collection_uri),
 		request_options = {
 			hostname: parsed_uri.hostname,
@@ -157,6 +168,7 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 		request = http.request(request_options, function(response) {
 			if (response.statusCode === '302' &&
 					response.headers.location.indexOf('/challenge')) {
+				console.log('emitting after challenge', id);
 				emitter.emit('output', processData(store,
 						tiddlerText, wikify, jQuery));
 			} else {
@@ -167,12 +179,14 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 				});
 				response.on('end', function() {
 					if (memcache && memcacheKey) {
+						console.log('setting cache for', collection_uri, id);
 						memcache.set(memcacheKey, content, 0, function() {});
 					}
 					twik.loadRemoteTiddlers(store, Tiddler,
 						collection_uri, content);
 					var output = processData(store, tiddlerText,
 						wikify, jQuery);
+					console.log('emitting after http load', id);
 					emitter.emit('output', output);
 				});
 			}
@@ -187,16 +201,17 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 };
 
 server.addListener('connection', function(c) {
-	var data = '';
+	var data = '',
+		id = uuid();
 	c.addListener('timeout', function() {
 		c.end('timeout on socket communication');
 		c.destroy();
-		console.error('timeout event on connection', c);
+		console.error('timeout event on connection', c, id);
 	});
 	c.addListener('error', function(err) {
 		c.end('error event on connection');
 		c.destroy();
-		console.error('error event on connection', c, err);
+		console.error('error event on connection', c, err, id);
 	});
 	c.addListener('data', function(chunk) {
 		data += chunk;
@@ -204,7 +219,7 @@ server.addListener('connection', function(c) {
 	c.addListener('end', function() {
 		var dataString = data.toString().replace(/(\r|\n)+$/, ''),
 			args = dataString.split(/\x00/),
-			output = processRequest(args);
+			output = processRequest(args, id);
 		output.emitter.on('output', function(data) {
 			c.end(data);
 			c.destroy();
