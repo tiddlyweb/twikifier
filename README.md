@@ -22,42 +22,13 @@ goes like this:
 
     brew install node npm
 
-One you have npm, install jsdom, htmlparser, jQuery (case sensitive), tav, location, navigator and xmlhttprequest
+One you have npm, install dependences with:
 
-    npm install net url jsdom htmlparser jQuery tav location navigator xmlhttprequest
+    npm install
 
-If you want to use server.js you also need:
-
-    npm install memcached@0.0.10 hashlib node-uuid
+This reads package.json and gets the dependencies from there.
 
 hashlib may fail to install on your machine.  If this is the case then manually install it via [this link](https://github.com/brainfucker/hashlib#install).
-
-Node modules can cause headaches when runtime problems are encountered.  Below is a dependency tree that is proven to work:
-
-    ├── htmlparser@1.7.6
-    ├── jQuery@1.7.4
-    ├─┬ jsdom@0.2.15
-    │ ├─┬ contextify@0.1.3
-    │ │ └── bindings@1.0.0
-    │ ├── cssom@0.2.5
-    │ └─┬ request@2.11.4
-    │   ├─┬ form-data@0.0.3
-    │   │ ├── async@0.1.9
-    │   │ └─┬ combined-stream@0.0.3
-    │   │   └── delayed-stream@0.0.5
-    │   └── mime@1.2.7
-    ├── location@0.0.1
-    ├─┬ memcached@0.0.10
-    │ └─┬ hashring@0.0.6
-    │   └── bisection@0.0.2
-    ├── navigator@1.0.1
-    ├── net@1.0.0
-    ├── node-uuid@1.3.3
-    ├── tav@0.1.0
-    ├─┬ url@0.7.9
-    │ ├── punycode@1.0.0
-    │ └── querystring@0.1.0
-    └── xmlhttprequest@1.4.2
 
 Make sure you set `NODE_PATH`:
 
