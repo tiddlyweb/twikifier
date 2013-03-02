@@ -2,6 +2,7 @@
     "name": "twikifier",
     "version": "0.1.0",
     "dependencies": { 
+        "async": "0.2.x",
         "location": "0.0.x",
         "jsdom": "0.5.x",
         "hashlib": "1.0.x",
