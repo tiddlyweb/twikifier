@@ -8,24 +8,24 @@ var formatter = new Formatter(config.formatters);
 //clobber createTiddlyLink
 function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromTiddler,noToggle)
 {
-        var text = includeText ? title : null;
-        var linktext = encodeURIComponent(title);
-        var btn = createExternalLink(place, linktext, text);
-		if (className) {
-			btn.className += ' ' + className;
-		}
-        return btn;
+	var text = includeText ? title : null;
+	var linktext = encodeURIComponent(title);
+	var btn = createExternalLink(place, linktext, text);
+	if (className) {
+		btn.className += ' ' + className;
+	}
+	return btn;
 }
 
 // clobber creatTagButton
 
 function createTagButton(place,tag,excludeTiddler,title,tooltip)
 {
-    var taglink = serverOptions.container ?
-        serverOptions.container + '?select=tag:' + encodeURIComponent(tag) :
-            "/search?q=tag:" + encodeURIComponent(tag);
-    var btn = createExternalLink(place, taglink, tag);
-    return btn;
+	var taglink = serverOptions.container ?
+		serverOptions.container + '?select=tag:' + encodeURIComponent(tag) :
+			"/search?q=tag:" + encodeURIComponent(tag);
+	var btn = createExternalLink(place, taglink, tag);
+	return btn;
 }
 
 // messages required for invokeMacro
@@ -35,22 +35,22 @@ function createTiddlyError(place, msg, details) {
 
 // override createSpaceLink
 function createSpaceLink(place, spaceName, title, alt, isBag) {
-    var link, a;
-    // XXX this needs to come from config or parameters
-    link = serverOptions.host;
+	var link, a;
+	// XXX this needs to come from config or parameters
+	link = serverOptions.host;
 
-    // assumes a http URI without user:pass@ prefix
-    link = link.replace("http://", "http://" + spaceName.toLowerCase() + ".");
+	// assumes a http URI without user:pass@ prefix
+	link = link.replace("http://", "http://" + spaceName.toLowerCase() + ".");
 
-    if (title) {
-        a = createExternalLink(place, link + "/" +
-                encodeURIComponent(title), alt || title);
-    } else {
-        a = createExternalLink(place, link, alt || spaceName);
-    }
-    jQuery(a).addClass('tiddlySpaceLink').attr('tiddler', title);
-    jQuery(a).attr('tiddlyspace', spaceName);
-    return a;
+	if (title) {
+		a = createExternalLink(place, link + "/" +
+				encodeURIComponent(title), alt || title);
+	} else {
+		a = createExternalLink(place, link, alt || spaceName);
+	}
+	jQuery(a).addClass('tiddlySpaceLink').attr('tiddler', title);
+	jQuery(a).attr('tiddlyspace', spaceName);
+	return a;
 }
 
 config.options.chkOpenInNewWindow = false;
@@ -60,4 +60,4 @@ return [wikify, store, Tiddler];
 };
 
 if (exports !== "undefined")
-    exports.createWikifier = createWikifier;
+	exports.createWikifier = createWikifier;
