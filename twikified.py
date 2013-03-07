@@ -110,7 +110,7 @@ def render(tiddler, environ):
                 twik_socket.shutdown(socket.SHUT_RDWR)
                 twik_socket.close()
         except (socket.error, IOError), exc:
-            if hasattr(exc 'errno') and exc.errno == 57:
+            if hasattr(exc, 'errno') and exc.errno == 57:
                 twik_socket.close()
             else:
                 LOGGER.warn('twikifier error during data processing: %s', exc)
@@ -119,8 +119,11 @@ def render(tiddler, environ):
         The raw text is given below.</div>
         <pre class='wikitext'>%s</pre>
         """ % (escape_attribute_value(tiddler.text))
-                twik_socket.shutdown(socket.SHUT_RDWR)
-                twik_socket.close()
+                try:
+                    twik_socket.shutdown(socket.SHUT_RDWR)
+                    twik_socket.close()
+                except (socket.error), exc:
+                    LOGGER.warn('twikifier bad socket shutdown: %s', exc)
                 return output
     except socket.timeout:
         LOGGER.warn('twikifier socket timeout')
