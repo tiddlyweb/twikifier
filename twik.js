@@ -37,15 +37,10 @@ twik.loadRemoteTiddlers = function(store, Tiddler, uri, jsonTiddlers) {
 	}
 
 	function finishUp(err) {
-		storeURL = new Tiddler('SiteUrl');
-		storeURL.text = uri;
-		storeURL.tags = ['excludeLists'];
-		store.addTiddler(storeURL);
 		emitter.emit('done', store);
 	}
 
 	async.eachSeries(tiddlers, addToStore, finishUp);
-	//async.each(tiddlers, addToStore, finishUp);
 	return emitter;
 };
 

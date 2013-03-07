@@ -9,12 +9,11 @@ var formatter = new Formatter(config.formatters);
 function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromTiddler,noToggle)
 {
         var text = includeText ? title : null;
-        var i = getTiddlyLinkInfo(title,className);
-        var urlString = store.getTiddlerText("SiteUrl");
-        var encodedTitle = encodeURIComponent(title);
-        var linktext = urlString ? urlString + '/' + encodedTitle : encodedTitle;
+        var linktext = encodeURIComponent(title);
         var btn = createExternalLink(place, linktext, text);
-        btn.className += ' ' + className;
+		if (className) {
+			btn.className += ' ' + className;
+		}
         return btn;
 }
 
