@@ -189,7 +189,14 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 				response.on('end', function() {
 					if (memcache && memcacheKey) {
 						console.log('setting cache for', collection_uri, id);
-						memcache.set(memcacheKey, content, 0, function() {});
+						memcache.set(memcacheKey, content, 0,
+							function(err, result) {
+								if (err) {
+									console.error('error setting cache for',
+										collection_uri, err);
+								}
+							}
+						);
 					}
 					var tiddlerEmitter = twik.loadRemoteTiddlers(store, Tiddler,
 						collection_uri, content);
