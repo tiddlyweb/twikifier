@@ -77,6 +77,24 @@ Then start TiddlyWeb/Tiddlyspace
 
 If you have connection problems after a restart, remove `/tmp/wst.sock` and try again.
 
+## Start-up Script
+
+To have twikifier automatically run on start-up and to give more control over starting and stopping it:
+
+Copy the file twikifier to `/etc/init.d/`
+
+Test it can start and stop:
+
+	/etc/init.d/twikifier start
+	/etc/init.d/twikifier stop
+	/etc/init.d/twikifier restart
+	
+Enable the script to start-up automatically on boot:
+
+	update-rc.d twikifier defaults
+	
+Credit goes to https://github.com/chovy/node-startup for this.
+
 # Why
 
 TiddlyWeb and friends use [WikklyText](http://wikklytext.com/) to do sever-side
