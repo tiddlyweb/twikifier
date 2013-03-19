@@ -1,0 +1,78 @@
+#/bin/sh
+#
+# Start-up script for Twikifier
+# Credit to https://github.com/chovy/node-startup
+#
+TS_USER=tiddlyweb
+USER_EXEC="sudo -u $TS_USER"
+NODE_EXEC=/usr/local/bin/node
+NODE_ENV=production
+NODE_APP=server.js
+APP_DIR=/home/$TS_USER/twikifier;
+PID_FILE=$APP_DIR/twikifier.pid
+LOG_FILE=$APP_DIR/twikifier.log
+
+###############
+
+# REDHAT chkconfig header
+
+# chkconfig: - 58 74
+# description: node-app is the script for starting a node app on boot.
+### BEGIN INIT INFO
+# Provides: node
+# Required-Start:    $network $remote_fs $local_fs 
+# Required-Stop:     $network $remote_fs $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: start and stop node
+# Description: Node process for app
+### END INIT INFO
+
+
+case "$1" in
+    start)
+        if [ -f $PID_FILE ]
+        then
+                echo "$PID_FILE exists, process is already running or crashed"
+        else
+                echo "Starting node app..."
+                NODE_ENV=$NODE_ENV $USER_EXEC $NODE_EXEC $APP_DIR/$NODE_APP  1>$LOG_FILE 2>&1 &
+                echo $! > $PID_FILE;
+        fi
+        ;;
+	stop)
+        if [ ! -f $PID_FILE ]
+        then
+                echo "$PID_FILE does not exist, process is not running"
+        else
+                echo "Stopping $APP_DIR/$NODE_APP ..."
+                echo "Killing `cat $PID_FILE`"
+                kill `cat $PID_FILE`;
+                rm $PID_FILE;
+                rm /tmp/wst.sock
+                echo "Node stopped"
+        fi
+        ;;
+
+        restart)
+                if [ ! -f $PID_FILE ]
+                then
+                        echo "$PID_FILE does not exist, process is not running"
+
+                else
+                        echo "Restarting $APP_DIR/$NODE_APP ..."
+                        echo "Killing `cat $PID_FILE`"
+                        kill `cat $PID_FILE`;
+                        rm $PID_FILE;
+                        rm /tmp/wst.sock
+                        NODE_ENV=$NODE_ENV $USER_EXEC $NODE_EXEC $APP_DIR/$NODE_APP  1>$LOG_FILE 2>&1 &
+                        echo $! > $PID_FILE;
+                        echo "Node restarted"
+                fi
+                ;;
+
+        *)
+                echo "Usage: /etc/init.d/node-app {start|stop|restart}"
+        ;;
+esac
+
