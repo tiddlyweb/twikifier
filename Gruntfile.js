@@ -11,7 +11,7 @@ module.exports = function (grunt) {
     var orderedLibFiles = [15];
     tiddlyWikiFiles.map(function (item, index) { orderedLibFiles[index] = "lib/" + item; });
 
-    var testTiddlersUri = "http://cdent-test7.tiddlyspace.com/bags/cdent-test7_public/tiddle";
+    var testTiddlersUri = "http://cdent-test7.tiddlyspace.com/bags/cdent-test7_public/tiddlers";
 
     grunt.initConfig({
         "curl-dir": {
