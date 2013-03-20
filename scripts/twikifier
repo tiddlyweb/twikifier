@@ -4,20 +4,18 @@
 # Credit to https://github.com/chovy/node-startup
 #
 TS_USER=tiddlyweb
-USER_EXEC="sudo -u $TS_USER"
-NODE_EXEC=/usr/local/bin/node
+USER_EXEC="su - $TS_USER -c"
 NODE_ENV=production
-NODE_APP=server.js
-APP_DIR=/home/$TS_USER/twikifier;
-PID_FILE=$APP_DIR/twikifier.pid
-LOG_FILE=$APP_DIR/twikifier.log
+NODE_APP=twikifier
+PID_FILE=/var/run/twikifier.pid
+LOG_FILE=/var/log/twikifier.log
 
 ###############
 
 # REDHAT chkconfig header
 
 # chkconfig: - 58 74
-# description: node-app is the script for starting a node app on boot.
+# description: twikifier is the script for starting twikifier on boot.
 ### BEGIN INIT INFO
 # Provides: node
 # Required-Start:    $network $remote_fs $local_fs 
@@ -35,8 +33,8 @@ case "$1" in
         then
                 echo "$PID_FILE exists, process is already running or crashed"
         else
-                echo "Starting node app..."
-                NODE_ENV=$NODE_ENV $USER_EXEC $NODE_EXEC $APP_DIR/$NODE_APP  1>$LOG_FILE 2>&1 &
+                echo "Starting twikifier..."
+                NODE_ENV=$NODE_ENV $USER_EXEC $NODE_APP  1>$LOG_FILE 2>&1 &
                 echo $! > $PID_FILE;
         fi
         ;;
@@ -45,12 +43,12 @@ case "$1" in
         then
                 echo "$PID_FILE does not exist, process is not running"
         else
-                echo "Stopping $APP_DIR/$NODE_APP ..."
+                echo "Stopping $NODE_APP ..."
                 echo "Killing `cat $PID_FILE`"
                 kill `cat $PID_FILE`;
                 rm $PID_FILE;
                 rm /tmp/wst.sock
-                echo "Node stopped"
+                echo "twikifier stopped"
         fi
         ;;
 
@@ -60,19 +58,19 @@ case "$1" in
                         echo "$PID_FILE does not exist, process is not running"
 
                 else
-                        echo "Restarting $APP_DIR/$NODE_APP ..."
+                        echo "Restarting $NODE_APP ..."
                         echo "Killing `cat $PID_FILE`"
                         kill `cat $PID_FILE`;
                         rm $PID_FILE;
                         rm /tmp/wst.sock
-                        NODE_ENV=$NODE_ENV $USER_EXEC $NODE_EXEC $APP_DIR/$NODE_APP  1>$LOG_FILE 2>&1 &
+                        NODE_ENV=$NODE_ENV $USER_EXEC $NODE_APP  1>$LOG_FILE 2>&1 &
                         echo $! > $PID_FILE;
                         echo "Node restarted"
                 fi
                 ;;
 
         *)
-                echo "Usage: /etc/init.d/node-app {start|stop|restart}"
+                echo "Usage: /etc/init.d/twikifier {start|stop|restart}"
         ;;
 esac
 

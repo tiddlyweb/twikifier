@@ -1,19 +1,52 @@
 {
-    "name": "twikifier",
-    "version": "0.1.0",
-    "dependencies": { 
-        "async": "0.2.x",
-        "location": "0.0.x",
-        "jsdom": "0.5.x",
-        "hashlib": "1.0.x",
-        "xmlhttprequest": "1.5.x",
-        "tav": "0.1.x",
-        "jQuery": "1.7.x",
-        "memcached": "0.2.x",
-        "node-uuid": "1.4.x",
-        "url": "0.7.x",
-        "net": "1.0.x",
-        "htmlparser": "1.7.x",
-        "navigator": "1.0.x"
-    }
+  "name": "twikifier",
+  "description": "A node.js based wikifier for TiddlyWiki text.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/cdent/twikifier",
+  "author": "Chris Dent",
+  "contributors": "Ben Paddock",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cdent/twikifier.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cdent/twikifier/issues"
+  },
+  "engines": {
+    "node": "0.8.x"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "bin": {
+    "twikifier": "./bin/server.js"
+  },
+  "dependencies": {
+    "async": "0.2.x",
+    "location": "0.0.x",
+    "jsdom": "0.5.x",
+    "xmlhttprequest": "1.5.x",
+    "tav": "0.1.x",
+    "jQuery": "1.7.x",
+    "memcached": "0.2.x",
+    "node-uuid": "1.4.x",
+    "url": "0.7.x",
+    "net": "1.0.x",
+    "htmlparser": "1.7.x",
+    "navigator": "1.0.x"
+  },
+  "devDependencies": {
+    "grunt-contrib-jshint": "~0.1.1",
+    "grunt": "~0.4.1",
+    "grunt-contrib-clean": "~0.4.0",
+    "grunt-curl": "~0.5.0",
+    "grunt-contrib-concat": "~0.1.3",
+    "grunt-contrib-copy": "~0.4.0",
+    "grunt-release": "~0.3.1"
+  },
+  "keywords": [
+    "twikifier",
+    "tiddlywiki",
+    "tiddlyweb"
+  ]
 }

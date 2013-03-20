@@ -22,33 +22,33 @@ goes like this:
 
     brew install node npm
 
-One you have npm, install dependences with:
+Once you have npm, install grunt with:
+
+    npm install -g grunt-cli
+
+Then install the project dependencies:
 
     npm install
 
-This reads package.json and gets the dependencies from there.
-
-hashlib may fail to install on your machine.  If this is the case then manually install it via [this link](https://github.com/brainfucker/hashlib#install).
-
-Make sure you set `NODE_PATH`:
-
-    export NODE_PATH=/usr/local/lib/node
-
 In the repo directory run:
 
-    make test
+    grunt
 
 This will get all the necessary TiddlyWiki code and concatenate it into
-`twikifier.js` and then run that file as a node script. The `test` target
-runs all the files in the test directory against twikifier.
+`dist/twikifier.js`.  The grunt test task is run after this and runs all the files in the `test/files`
+directory against twikifier via `test/twikify/js`.
 
-You can try your own wikitext by piping data into twikify on STDIN:
+The task also creates a distributable node application in `bin/server.js`.
 
-    ./twikify --collection=<url for tiddler collection> < /tmp/mysampledata.txt
+## Testing
+
+From the test directory, you can try your own wikitext by piping data into twikify on STDIN:
+
+    node twikify.js --collection=<url for tiddler collection> < /tmp/mysampledata.txt
 
 or by giving the names of multiple files on the command line:
 
-    ./twikify --collection=<url for tiddler collection> /tmp/mysampledata.txt \
+    node twikify.js --collection=<url for tiddler collection> /tmp/mysampledata.txt \
         /tmp/someotherdata.txt
 
 `<url for tiddler collection>` should be replaced with the url of a collection
@@ -59,35 +59,54 @@ of tiddlers, in JSON, as found in TiddlyWeb. Things like:
 
 As the tool develops there will be other interfaces.
 
+# Testing the NPM Package Works
+
+From the repo directory run:
+
+    npm pack
+
+This will create a zipped tarball.  Install this tarball as follows:
+
+    npm install -g twikifier-x.y.z.tgz
+
+If all is well, `twikifier` will be available in your path.  Run this to check twikifier works.
+
+# Releasing the NPM Package
+
+Run:
+
+    grunt release
+
+See [this link](https://npmjs.org/package/grunt-release#readme) for how this works.
+
 # Use with TiddlyWeb and Tiddlyspace
 
 Copy twikified.py into the folder where the instance is running.
 
 Add 'twikified' to the list of system plugins in tiddlywebconfig.py.
 
-Run the twikifier server:
+Install this package via NPM then run the twikifier server:
 
-    ./twikifier_server
-
-Or:
-
-    node server.js
+    npm install -g twikifier
+    twikifier
 
 Then start TiddlyWeb/Tiddlyspace
 
 If you have connection problems after a restart, remove `/tmp/wst.sock` and try again.
 
+To permantly run twikifier, see the next section.
+
 ## Start-up Script
 
 To have twikifier automatically run on start-up and to give more control over starting and stopping it:
 
-Copy the file twikifier to `/etc/init.d/`
+Copy the file `scripts/twikifier` to `/etc/init.d/`
 
 Test it can start and stop:
 
-	/etc/init.d/twikifier start
-	/etc/init.d/twikifier stop
-	/etc/init.d/twikifier restart
+	sudo /etc/init.d/twikifier start
+	sudo /etc/init.d/twikifier stop
+	sudo /etc/init.d/twikifier restart
 	
 Enable the script to start-up automatically on boot:
 
@@ -175,7 +194,8 @@ needs two things:
 * To present a web service or local socket that takes an input (a text
   string, a tiddler bag/title combo?) and returns the generated HTML.
 
-Packaging this up as a node module would also be of use.
+* The Python code that provides the plugin hook for TiddlyWeb should live in a seperate repository
+and be installed via pip.
 
 # Who
 
