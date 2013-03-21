@@ -81,9 +81,13 @@ See [this link](https://npmjs.org/package/grunt-release#readme) for how this wor
 
 # Use with TiddlyWeb and Tiddlyspace
 
-Copy twikified.py into the folder where the instance is running.
+Install the TiddlyWeb plugin:
 
-Add 'twikified' to the list of system plugins in tiddlywebconfig.py.
+    pip install -U tiddlywebplugins.twikified
+
+Add the following to tiddlywebconfig.py:
+
+    'wikitext.default_renderer': 'tiddlywebplugins.twikified'
 
 Install this package via NPM then run the twikifier server:
 
