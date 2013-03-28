@@ -3,12 +3,13 @@
 # Start-up script for Twikifier
 # Credit to https://github.com/chovy/node-startup
 #
-TS_USER=tiddlyweb
-USER_EXEC="su - $TS_USER -c"
+TW_USER=tiddlyweb
+USER_EXEC="su - $TW_USER -c"
 NODE_ENV=production
 NODE_APP=twikifier
 LOGGER="logger -p syslog.info -t twikifier"
-SOCKET_FILE=/var/run/twikifier/wst.sock
+RUN_DIR=/var/run/twikifier
+SOCKET_FILE=$RUN_DIR/wst.sock
 PID_FILE=/var/run/twikifier.pid
 
 ###############
@@ -33,6 +34,12 @@ case "$1" in
         then
             echo "$PID_FILE exists, process is already running or crashed"
         else
+        	# If the system has rebooted the run dir will have disappeared
+        	if [ ! -d "$RUN_DIR" ]; then
+        		mkdir $RUN_DIR
+        		chown $TW_USER.$TW_USER $RUN_DIR
+        		
+        	fi
             echo "Starting twikifier..."
             { NODE_ENV=$NODE_ENV $USER_EXEC $NODE_APP & echo $! > $PID_FILE; } | $LOGGER &
             echo "twikifier started"
