@@ -1,7 +1,7 @@
 {
   "name": "twikifier",
   "description": "A node.js based wikifier for TiddlyWiki text.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/cdent/twikifier",
   "author": "Chris Dent",
   "contributors": "Ben Paddock",
