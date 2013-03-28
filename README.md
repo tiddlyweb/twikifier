@@ -89,15 +89,10 @@ Add the following to tiddlywebconfig.py:
 
     'wikitext.default_renderer': 'tiddlywebplugins.twikified'
 
-Create a run folder for the socket file to live in, making sure the user running twikifier can read/write:
-
-    mkdir /var/run/twikifier
-    chown user.user /var/run/twikifier
-
 Install this package via NPM then run the twikifier server:
 
     npm install -g twikifier
-    twikifier
+    twikifier /tmp/wst.sock
 
 Then start TiddlyWeb/Tiddlyspace
 
@@ -120,8 +115,18 @@ Test it can start and stop:
 Enable the script to start-up automatically on boot:
 
 	update-rc.d twikifier defaults
-	
+
 Credit goes to https://github.com/chovy/node-startup for this.
+
+###Socket File Location
+
+By default, twikifier expects the socket file to live in `/var/run/twikifier`.
+Create this folder, making sure the user running twikifier can read/write:
+
+    mkdir /var/run/twikifier
+    chown user.user /var/run/twikifier
+
+To use another location, add the absolute path as an argument to twikifier in the start-up script.
 
 # Why
 
