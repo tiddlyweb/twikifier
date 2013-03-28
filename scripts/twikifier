@@ -7,8 +7,9 @@ TS_USER=tiddlyweb
 USER_EXEC="su - $TS_USER -c"
 NODE_ENV=production
 NODE_APP=twikifier
+LOGGER="logger -p syslog.info -t twikifier"
+SOCKET_FILE=/var/run/twikifier/wst.sock
 PID_FILE=/var/run/twikifier.pid
-LOG_FILE=/var/log/twikifier.log
 
 ###############
 
@@ -26,51 +27,44 @@ LOG_FILE=/var/log/twikifier.log
 # Description: Node process for app
 ### END INIT INFO
 
-
 case "$1" in
     start)
         if [ -f $PID_FILE ]
         then
-                echo "$PID_FILE exists, process is already running or crashed"
+            echo "$PID_FILE exists, process is already running or crashed"
         else
-                echo "Starting twikifier..."
-                NODE_ENV=$NODE_ENV $USER_EXEC $NODE_APP  1>$LOG_FILE 2>&1 &
-                echo $! > $PID_FILE;
+            echo "Starting twikifier..."
+            { NODE_ENV=$NODE_ENV $USER_EXEC $NODE_APP & echo $! > $PID_FILE; } | $LOGGER &
+            echo "twikifier started"
         fi
         ;;
 	stop)
         if [ ! -f $PID_FILE ]
         then
-                echo "$PID_FILE does not exist, process is not running"
+            echo "$PID_FILE does not exist, process is not running"
         else
-                echo "Stopping $NODE_APP ..."
-                echo "Killing `cat $PID_FILE`"
-                kill `cat $PID_FILE`;
-                rm $PID_FILE;
-                rm /tmp/wst.sock
-                echo "twikifier stopped"
+            echo "Stopping twikifier ..."
+            kill `cat $PID_FILE`
+            rm $PID_FILE
+            rm $SOCKET_FILE
+            echo "twikifier stopped"
         fi
         ;;
-
-        restart)
-                if [ ! -f $PID_FILE ]
-                then
-                        echo "$PID_FILE does not exist, process is not running"
-
-                else
-                        echo "Restarting $NODE_APP ..."
-                        echo "Killing `cat $PID_FILE`"
-                        kill `cat $PID_FILE`;
-                        rm $PID_FILE;
-                        rm /tmp/wst.sock
-                        NODE_ENV=$NODE_ENV $USER_EXEC $NODE_APP  1>$LOG_FILE 2>&1 &
-                        echo $! > $PID_FILE;
-                        echo "Node restarted"
-                fi
-                ;;
-
-        *)
-                echo "Usage: /etc/init.d/twikifier {start|stop|restart}"
+    restart)
+        if [ ! -f $PID_FILE ]
+        then
+            echo "$PID_FILE does not exist, process is not running"
+        else
+            echo "Restarting twikifier ..."
+            kill `cat $PID_FILE`
+            rm $PID_FILE
+            rm $SOCKET_FILE
+            sleep 1
+            { NODE_ENV=$NODE_ENV $USER_EXEC $NODE_APP & echo $! > $PID_FILE; } | $LOGGER &
+            echo "twikifier restarted"
+        fi
         ;;
+    *)
+    echo "Usage: /etc/init.d/twikifier {start|stop|restart}"
+    ;;
 esac
-

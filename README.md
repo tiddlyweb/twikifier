@@ -89,6 +89,11 @@ Add the following to tiddlywebconfig.py:
 
     'wikitext.default_renderer': 'tiddlywebplugins.twikified'
 
+Create a run folder for the socket file to live in, making sure the user running twikifier can read/write:
+
+    mkdir /var/run/twikifier
+    chown user.user /var/run/twikifier
+
 Install this package via NPM then run the twikifier server:
 
     npm install -g twikifier

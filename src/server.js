@@ -21,7 +21,7 @@ var net = require("net"),
 
 var Emitter = require("events").EventEmitter,
 	memcache = new Memcached("127.0.0.1:11211"),
-	socketPath = "/tmp/wst.sock",
+	socketPath = "/var/run/twikifier/wst.sock",
 	maxWorkers = 4,
 	getData,
 	tiddlersFromCache,
