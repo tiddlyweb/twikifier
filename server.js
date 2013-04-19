@@ -96,13 +96,15 @@ tiddlersFromCache = function(memcacheKey, collection_uri, id, emitter,
 					memcacheKey, id);
 			} else {
 				console.log('using cache for', collection_uri, id);
-				var tiddlerEmitter = twik.loadRemoteTiddlers(store, Tiddler,
-					collection_uri, result);
-				tiddlerEmitter.on('done', function(tiddlerStore) {
+				var tiddlerLoader = twik.loadRemoteTiddlers(store, Tiddler,
+					collection_uri, result),
+					tiddlerEmitter = tiddlerLoader.emitter;
+				tiddlerEmitter.on('LoadDone', function(tiddlerStore) {
 					console.log('emitting for', collection_uri, id);
 					emitter.emit('output', processData(tiddlerStore,
 							tiddlerText, wikify, jQuery));
 				});
+				tiddlerLoader.start();
 			}
 		}
 	});
@@ -198,13 +200,17 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 							}
 						);
 					}
-					var tiddlerEmitter = twik.loadRemoteTiddlers(store, Tiddler,
-						collection_uri, content);
-					tiddlerEmitter.on('done', function(tiddlerStore) {
-						console.log('emitting after http load', id);
+					console.error('going to load remote', id);
+					var tiddlerLoader = twik.loadRemoteTiddlers(store, Tiddler,
+						collection_uri, content),
+						tiddlerEmitter = tiddlerLoader.emitter;
+					console.error('awaiting emitter events', id);
+					tiddlerEmitter.on('LoadDone', function(tiddlerStore) {
+						console.error('emitting after http load', id);
 						emitter.emit('output', processData(tiddlerStore,
 								tiddlerText, wikify, jQuery));
 					});
+					tiddlerLoader.start();
 				});
 			}
 		});

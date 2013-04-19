@@ -48,6 +48,7 @@ def init(config):
     """
     if config.get('twikified.render', True):
         config['wikitext.default_renderer'] = 'twikified'
+        config['wikitext.type_render_map']['text/x-tiddlywiki'] = 'twikified'
 
 
 def render(tiddler, environ):
