@@ -224,14 +224,16 @@ function startUp() {
 	console.log('starting up');
 	if (cluster.isMaster) {
 		fs.unlink(socketPath, function() {
+			var i;
 			console.log('master wants to fork');
-			for (var i = 0; i < maxWorkers; i++) {
+			for (i = 0; i < maxWorkers; i++) {
 				console.log('forking');
 				cluster.fork();
 			}
 			cluster.on('exit', function(worker, code, signal) {
 				var exitCode = worker.process.exitCode;
-				console.log('worker ' + worker.process.pid + ' died ('+exitCode+'). restarting...');
+				console.log('worker ' + worker.process.pid +
+					' died (' + exitCode + '). restarting...');
 				cluster.fork();
 			});
 		});
