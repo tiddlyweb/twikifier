@@ -98,7 +98,7 @@ tiddlersFromCache = function(memcacheKey, collection_uri, id, emitter,
 				var tiddlerLoader = twik.loadRemoteTiddlers(store, Tiddler,
 					collection_uri, result),
 					tiddlerEmitter = tiddlerLoader.emitter;
-				tiddlerEmitter.on('LoadDone', function(tiddlerStore) {
+				tiddlerEmitter.once('LoadDone', function(tiddlerStore) {
 					emitter.emit('output', processData(tiddlerStore,
 							tiddlerText, wikify, jQuery));
 				});
@@ -185,7 +185,7 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 				response.on('data', function(chunk) {
 					content += chunk;
 				});
-				response.on('end', function() {
+				response.once('end', function() {
 					if (memcache && memcacheKey) {
 						console.log('setting cache for', collection_uri, id);
 						memcache.set(memcacheKey, content, 0,
@@ -200,7 +200,7 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 					var tiddlerLoader = twik.loadRemoteTiddlers(store, Tiddler,
 						collection_uri, content),
 						tiddlerEmitter = tiddlerLoader.emitter;
-					tiddlerEmitter.on('LoadDone', function(tiddlerStore) {
+					tiddlerEmitter.once('LoadDone', function(tiddlerStore) {
 						console.error('emitting after http load', id);
 						emitter.emit('output', processData(tiddlerStore,
 								tiddlerText, wikify, jQuery));
@@ -210,7 +210,7 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 			}
 		});
 
-	request.on('error', function(err) {
+	request.once('error', function(err) {
 		emitter.emit('output', processData(store, tiddlerText,
 				wikify, jQuery));
 	});
@@ -265,7 +265,7 @@ function startUp() {
 				var dataString = data.toString().replace(/(\r|\n)+$/, ''),
 					args = dataString.split(/\x00/),
 					output = processRequest(args, id);
-				output.emitter.on('output', function(data) {
+				output.emitter.once('output', function(data) {
 					console.log('ending request', id);
 					c.end(data);
 					c.destroy();
