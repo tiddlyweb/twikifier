@@ -90,7 +90,6 @@ tiddlersFromCache = function(memcacheKey, collection_uri, id, emitter,
 				'Error getting collection key ' + err);
 		} else {
 			if (!result) {
-				console.log('not using cache for', collection_uri, id);
 				getContainerInfo(emitter, collection_uri, tiddlyweb_cookie,
 					store, tiddlerText, wikify, jQuery, Tiddler, memcache,
 					memcacheKey, id);
@@ -100,7 +99,6 @@ tiddlersFromCache = function(memcacheKey, collection_uri, id, emitter,
 					collection_uri, result),
 					tiddlerEmitter = tiddlerLoader.emitter;
 				tiddlerEmitter.on('LoadDone', function(tiddlerStore) {
-					console.log('emitting for', collection_uri, id);
 					emitter.emit('output', processData(tiddlerStore,
 							tiddlerText, wikify, jQuery));
 				});
@@ -114,7 +112,6 @@ getData = function(collection_uri, tiddlyweb_cookie,
 		emitter, store, Tiddler, tiddlerText, wikify, jQuery, id) {
 	if (/<</.test(tiddlerText)) { // augment the store with other tiddlers
 		if (!memcache) {
-			console.log('getting macro tiddlers via', collection_uri, id);
 			getContainerInfo(emitter, collection_uri, tiddlyweb_cookie, store,
 					tiddlerText, wikify, jQuery, Tiddler, false, id);
 		} else {
@@ -138,7 +135,7 @@ getData = function(collection_uri, tiddlyweb_cookie,
 										emitter, store, Tiddler, tiddlerText,
 										wikify, jQuery, id);
 								} else {
-									console.log('non-error namespace getting error', id);
+									console.error('non-error namespace getting error', id);
 									emitter.emit('output',
 										'no key for namespace');
 								}
@@ -200,11 +197,9 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 							}
 						);
 					}
-					console.error('going to load remote', id);
 					var tiddlerLoader = twik.loadRemoteTiddlers(store, Tiddler,
 						collection_uri, content),
 						tiddlerEmitter = tiddlerLoader.emitter;
-					console.error('awaiting emitter events', id);
 					tiddlerEmitter.on('LoadDone', function(tiddlerStore) {
 						console.error('emitting after http load', id);
 						emitter.emit('output', processData(tiddlerStore,
