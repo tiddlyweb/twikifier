@@ -21,26 +21,28 @@ twik.formatText = function (window, wikify, text) {
 };
 
 twik.loadRemoteTiddlers = function (store, Tiddler, uri, jsonTiddlers) {
-	var tiddlers = JSON.parse(jsonTiddlers), // TODO: make async?
-		emitter = new Emitter();
+	var loadEmitter = new Emitter(),
+        startFunction = function () {
+		var tiddlers = JSON.parse(jsonTiddlers); // TODO: make async?
 
-	function addToStore(item, errcallback) {
-		var t = new Tiddler(item.title);
-		t.tags = item.tags;
-		t.modifier = item.modifier;
-		t.modified = Date.convertFromYYYYMMDDHHMM(item.modified);
-		t.created = Date.convertFromYYYYMMDDHHMM(item.created);
-		t.fields = item.fields;
-		store.addTiddler(t);
-		errcallback();
-	}
+		function addToStore(item, errcallback) {
+			var t = new Tiddler(item.title);
+			t.tags = item.tags;
+			t.modifier = item.modifier;
+			t.modified = Date.convertFromYYYYMMDDHHMM(item.modified);
+			t.created = Date.convertFromYYYYMMDDHHMM(item.created);
+			t.fields = item.fields;
+			store.addTiddler(t);
+			errcallback();
+		}
 
-	function finishUp() {
-		emitter.emit("done", store);
-	}
+		function finishUp() {
+			loadEmitter.emit("LoadDone", store);
+		}
 
-	async.eachSeries(tiddlers, addToStore, finishUp);
-	return emitter;
+		async.eachSeries(tiddlers, addToStore, finishUp);
+	};
+	return {emitter: loadEmitter, start: startFunction};
 };
 
 
