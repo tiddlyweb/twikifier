@@ -90,19 +90,19 @@ tiddlersFromCache = function(memcacheKey, collection_uri, id, emitter,
 				'Error getting collection key ' + err);
 		} else {
 			if (!result) {
-				console.log('not using cache for', collection_uri, id);
 				getContainerInfo(emitter, collection_uri, tiddlyweb_cookie,
 					store, tiddlerText, wikify, jQuery, Tiddler, memcache,
 					memcacheKey, id);
 			} else {
 				console.log('using cache for', collection_uri, id);
-				var tiddlerEmitter = twik.loadRemoteTiddlers(store, Tiddler,
-					collection_uri, result);
-				tiddlerEmitter.on('done', function(tiddlerStore) {
-					console.log('emitting for', collection_uri, id);
+				var tiddlerLoader = twik.loadRemoteTiddlers(store, Tiddler,
+					collection_uri, result),
+					tiddlerEmitter = tiddlerLoader.emitter;
+				tiddlerEmitter.once('LoadDone', function(tiddlerStore) {
 					emitter.emit('output', processData(tiddlerStore,
 							tiddlerText, wikify, jQuery));
 				});
+				tiddlerLoader.start();
 			}
 		}
 	});
@@ -112,7 +112,6 @@ getData = function(collection_uri, tiddlyweb_cookie,
 		emitter, store, Tiddler, tiddlerText, wikify, jQuery, id) {
 	if (/<</.test(tiddlerText)) { // augment the store with other tiddlers
 		if (!memcache) {
-			console.log('getting macro tiddlers via', collection_uri, id);
 			getContainerInfo(emitter, collection_uri, tiddlyweb_cookie, store,
 					tiddlerText, wikify, jQuery, Tiddler, false, id);
 		} else {
@@ -136,7 +135,7 @@ getData = function(collection_uri, tiddlyweb_cookie,
 										emitter, store, Tiddler, tiddlerText,
 										wikify, jQuery, id);
 								} else {
-									console.log('non-error namespace getting error', id);
+									console.error('non-error namespace getting error', id);
 									emitter.emit('output',
 										'no key for namespace');
 								}
@@ -186,7 +185,7 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 				response.on('data', function(chunk) {
 					content += chunk;
 				});
-				response.on('end', function() {
+				response.once('end', function() {
 					if (memcache && memcacheKey) {
 						console.log('setting cache for', collection_uri, id);
 						memcache.set(memcacheKey, content, 0,
@@ -198,18 +197,20 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 							}
 						);
 					}
-					var tiddlerEmitter = twik.loadRemoteTiddlers(store, Tiddler,
-						collection_uri, content);
-					tiddlerEmitter.on('done', function(tiddlerStore) {
-						console.log('emitting after http load', id);
+					var tiddlerLoader = twik.loadRemoteTiddlers(store, Tiddler,
+						collection_uri, content),
+						tiddlerEmitter = tiddlerLoader.emitter;
+					tiddlerEmitter.once('LoadDone', function(tiddlerStore) {
+						console.error('emitting after http load', id);
 						emitter.emit('output', processData(tiddlerStore,
 								tiddlerText, wikify, jQuery));
 					});
+					tiddlerLoader.start();
 				});
 			}
 		});
 
-	request.on('error', function(err) {
+	request.once('error', function(err) {
 		emitter.emit('output', processData(store, tiddlerText,
 				wikify, jQuery));
 	});
@@ -223,14 +224,16 @@ function startUp() {
 	console.log('starting up');
 	if (cluster.isMaster) {
 		fs.unlink(socketPath, function() {
+			var i;
 			console.log('master wants to fork');
-			for (var i = 0; i < maxWorkers; i++) {
+			for (i = 0; i < maxWorkers; i++) {
 				console.log('forking');
 				cluster.fork();
 			}
 			cluster.on('exit', function(worker, code, signal) {
 				var exitCode = worker.process.exitCode;
-				console.log('worker ' + worker.process.pid + ' died ('+exitCode+'). restarting...');
+				console.log('worker ' + worker.process.pid +
+					' died (' + exitCode + '). restarting...');
 				cluster.fork();
 			});
 		});
@@ -262,7 +265,7 @@ function startUp() {
 				var dataString = data.toString().replace(/(\r|\n)+$/, ''),
 					args = dataString.split(/\x00/),
 					output = processRequest(args, id);
-				output.emitter.on('output', function(data) {
+				output.emitter.once('output', function(data) {
 					console.log('ending request', id);
 					c.end(data);
 					c.destroy();
