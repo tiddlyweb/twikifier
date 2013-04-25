@@ -7,7 +7,7 @@ process.title = 'twikifier'; // helpful for watching top and ps
 var net = require('net'),
 	fs = require('fs'),
 	jsdom = require('jsdom'),
-	jquery = require('jQuery'),
+	jquery = require('jquery'),
 	http = require('http'),
 	url = require('url'),
 	Memcached = require('memcached'),
@@ -21,6 +21,7 @@ var Emitter = require('events').EventEmitter,
 	memcache = new Memcached('127.0.0.1:11211'),
 	socketPath = '/tmp/wst.sock',
 	maxWorkers = 4,
+	maxClientConnections = 100,
 	getData,
 	tiddlersFromCache,
 	getContainerInfo;
@@ -63,7 +64,11 @@ var processRequest = function(args, id, emitter) {
 	console.log('starting request', id);
 	return {emitter: emitter, action: function () {
 
-		var window = jsdom.jsdom('<html><head></head><body></body></html>')
+		var window = jsdom.jsdom('<html><head></head><body></body></html>',
+				null, {features: {
+					FetchExternalResources: false,
+					ProcessExternalResources: false
+				}})
 				.createWindow(),
 			jQuery = jquery.create(window), // jQuery-ize the window
 			collection_uri = args[0],
@@ -77,6 +82,10 @@ var processRequest = function(args, id, emitter) {
 
 		getData(collection_uri, tiddlyweb_cookie, emitter, store,
 				Tiddler, tiddlerText, wikify, jQuery, id);
+
+		/* don't close window as it might crash
+		window.close();
+		*/
 	}};
 };
 
@@ -113,7 +122,7 @@ getData = function(collection_uri, tiddlyweb_cookie,
 	if (/<</.test(tiddlerText)) { // augment the store with other tiddlers
 		if (!memcache) {
 			getContainerInfo(emitter, collection_uri, tiddlyweb_cookie, store,
-					tiddlerText, wikify, jQuery, Tiddler, false, id);
+					tiddlerText, wikify, jQuery, Tiddler, false, false, id);
 		} else {
 			var namespace = getNamespace(collection_uri);
 			memcache.get(namespace, function(err, result) {
@@ -201,7 +210,7 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 						collection_uri, content),
 						tiddlerEmitter = tiddlerLoader.emitter;
 					tiddlerEmitter.once('LoadDone', function(tiddlerStore) {
-						console.error('emitting after http load', id);
+						console.log('emitting after http load', id);
 						emitter.emit('output', processData(tiddlerStore,
 								tiddlerText, wikify, jQuery));
 					});
@@ -239,29 +248,32 @@ function startUp() {
 		});
 	} else { // in a child
 		console.log('starting worker');
-		var server = net.createServer({allowHalfOpen: true});
+
+		var server = net.createServer({allowHalfOpen: true}),
+			connectionCount = 0;
 		server.maxConnections = 50;
 		server.listen(socketPath);
 
-		server.addListener('connection', function(c) {
+		server.on('connection', function(c) {
 			var data = '',
 				id = uuid();
-			c.addListener('timeout', function() {
+			connectionCount++;
+			c.once('timeout', function() {
 				c.end('timeout on socket communication');
 				c.destroy();
 				console.error('timeout event on connection', c, id);
 				process.exit(1);
 			});
-			c.addListener('error', function(err) {
+			c.once('error', function(err) {
 				c.end('error event on connection');
 				c.destroy();
 				console.error('error event on connection', c, err, id);
 				process.exit(1);
 			});
-			c.addListener('data', function(chunk) {
+			c.on('data', function(chunk) {
 				data += chunk;
 			});
-			c.addListener('end', function() {
+			c.once('end', function() {
 				var dataString = data.toString().replace(/(\r|\n)+$/, ''),
 					args = dataString.split(/\x00/),
 					output = processRequest(args, id);
@@ -274,6 +286,9 @@ function startUp() {
 			});
 			// timeout after 10 seconds of inactivity
 			c.setTimeout(10000);
+			if (connectionCount > maxClientConnections) {
+				server.close(process.exit);
+			}
 		});
 	}
 }

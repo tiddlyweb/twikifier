@@ -38,6 +38,7 @@ twik.loadRemoteTiddlers = function(store, Tiddler, uri, jsonTiddlers) {
 		}
 
 		function finishUp(err) {
+			tiddlers = null;
 			loadEmitter.emit('LoadDone', store);
 		}
 
