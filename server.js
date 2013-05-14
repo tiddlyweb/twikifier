@@ -225,7 +225,7 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 	request.setTimeout(8000, function() {
 		emitter.emit('output', processData(store, tiddlerText,
 				wikify, jQuery));
-	}
+	});
 
 	request.once('error', function(err) {
 		emitter.emit('output', processData(store, tiddlerText,
