@@ -219,6 +219,14 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 			}
 		});
 
+	// If there is a timeout on the HTTP request, just work with
+	// the text we've been given, don't let the timeout bubble
+	// up to the unix socket communication.
+	request.setTimeout(8000, function() {
+		emitter.emit('output', processData(store, tiddlerText,
+				wikify, jQuery));
+	}
+
 	request.once('error', function(err) {
 		emitter.emit('output', processData(store, tiddlerText,
 				wikify, jQuery));
