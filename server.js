@@ -201,7 +201,7 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 							function(err, result) {
 								if (err) {
 									console.error('error setting cache for',
-										collection_uri, err);
+										collection_uri, err, id);
 								}
 							}
 						);
@@ -223,6 +223,7 @@ getContainerInfo = function(emitter, collection_uri, tiddlyweb_cookie,
 	// the text we've been given, don't let the timeout bubble
 	// up to the unix socket communication.
 	request.setTimeout(8000, function() {
+		console.error('timeout when requesting', collection_uri, id);
 		emitter.emit('output', processData(store, tiddlerText,
 				wikify, jQuery));
 	});
