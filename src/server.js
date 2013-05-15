@@ -7,7 +7,7 @@ process.title = "twikifier"; // helpful for watching top and ps
 var net = require("net"),
     fs = require("fs"),
     jsdom = require("jsdom"),
-    jquery = require("jQuery"),
+    jquery = require("jquery"),
     http = require("http"),
     url = require("url"),
     Memcached = require("memcached"),
@@ -21,6 +21,7 @@ var Emitter = require("events").EventEmitter,
     memcache = new Memcached("127.0.0.1:11211"),
     socketPath = "/tmp/wst.sock",
     maxWorkers = 4,
+    maxClientConnections = 100,
     getData,
     tiddlersFromCache,
     getContainerInfo;
@@ -44,7 +45,7 @@ var processData = function (store, tiddlerText, wikify, jQuery) {
     return output;
 };
 
-// use a bag"s namespace if possible, otherwise use any
+// use a bag's namespace if possible, otherwise use any
 var getNamespace = function (uri) {
     var match = /\/(bags|recipes)\/([^\/]+)/.exec(uri),
         namespace;
@@ -61,23 +62,29 @@ var getNamespace = function (uri) {
 var processRequest = function (args, id, emitter) {
     emitter = emitter || new Emitter();
     console.log("starting request", id);
-    return {emitter: emitter, action: function () {
+    return {
+        emitter: emitter,
+        action: function () {
 
-        var window = jsdom.jsdom("<html><head></head><body></body></html>")
-                .createWindow(),
+            var window = jsdom.jsdom("<html><head></head><body></body></html>",
+                null, {
+                    features: {
+                        FetchExternalResources: false,
+                        ProcessExternalResources: false
+                    }
+                }).createWindow(),
             jQuery = jquery.create(window), // jQuery-ize the window
             collection_uri = args[0],
             tiddlerText = args[1],
             tiddlyweb_cookie = args[2] || "",
-            globals = twikifier.createWikifier(window, jQuery,
-                {container: collection_uri}),
+            globals = twikifier.createWikifier(window, jQuery, { container: collection_uri }),
             wikify = globals[0],
             store = globals[1],
             Tiddler = globals[2];
 
-        getData(collection_uri, tiddlyweb_cookie, emitter, store,
-            Tiddler, tiddlerText, wikify, jQuery, id);
-    }};
+            getData(collection_uri, tiddlyweb_cookie, emitter, store, Tiddler, tiddlerText, wikify, jQuery, id);
+        }
+    };
 };
 
 tiddlersFromCache = function (memcacheKey, collection_uri, id, emitter,
@@ -210,9 +217,16 @@ getContainerInfo = function (emitter, collection_uri, tiddlyweb_cookie,
             }
         });
 
+    // If there is a timeout on the HTTP request, just work with
+    // the text we've been given, don't let the timeout bubble
+    // up to the unix socket communication.
+    request.setTimeout(8000, function () {
+        console.error("timeout when requesting", collection_uri, id);
+        emitter.emit("output", processData(store, tiddlerText, wikify, jQuery));
+    });
+
     request.once("error", function () {
-        emitter.emit("output", processData(store, tiddlerText,
-            wikify, jQuery));
+        emitter.emit("output", processData(store, tiddlerText, wikify, jQuery));
     });
 
     request.end();
@@ -239,29 +253,31 @@ function startUp() {
         });
     } else { // in a child
         console.log("starting worker");
-        var server = net.createServer({allowHalfOpen: true});
+
+        var server = net.createServer({ allowHalfOpen: true }),
+        connectionCount = 0;
         server.maxConnections = 50;
         server.listen(socketPath);
 
-        server.addListener("connection", function (c) {
+        server.on("connection", function (c) {
             var data = "",
                 id = uuid();
-            c.addListener("timeout", function () {
+            c.once("timeout", function () {
                 c.end("timeout on socket communication");
                 c.destroy();
                 console.error("timeout event on connection", c, id);
                 process.exit(1);
             });
-            c.addListener("error", function (err) {
+            c.once("error", function (err) {
                 c.end("error event on connection");
                 c.destroy();
                 console.error("error event on connection", c, err, id);
                 process.exit(1);
             });
-            c.addListener("data", function (chunk) {
+            c.on("data", function (chunk) {
                 data += chunk;
             });
-            c.addListener("end", function () {
+            c.once("end", function () {
                 var dataString = data.toString().replace(/(\r|\n)+$/, ""),
                     args = dataString.split(/\x00/),
                     output = processRequest(args, id);
@@ -274,6 +290,9 @@ function startUp() {
             });
             // timeout after 10 seconds of inactivity
             c.setTimeout(10000);
+            if (connectionCount > maxClientConnections) {
+                server.close(process.exit);
+            }
         });
     }
 }
