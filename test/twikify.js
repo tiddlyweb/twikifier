@@ -87,7 +87,7 @@ twikify.run = function(passedUri, filename) {
         var options = {
             hostname: parsed_uri.hostname,
             port: parsed_uri.port ? parsed_uri.port : 80,
-            path: "?fat=1",
+            path: parsed_uri.pathname + "?fat=1",
             method: "GET",
             headers: { "accept": "application/json" }
         };
