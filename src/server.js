@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*jslint unparam: true, indent: 4, node: true */
 
 "use strict";
@@ -14,8 +16,8 @@ var net = require("net"),
     crypto = require("crypto"),
     uuid = require("node-uuid"),
     cluster = require("cluster"),
-    twikifier = require("./twikifier"),
-    twik = require("./twik");
+    twikifier = require("../dist/twikifier"),
+    twik = require("../dist/twik");
 
 var Emitter = require("events").EventEmitter,
     memcache = new Memcached("127.0.0.1:11211"),
