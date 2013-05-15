@@ -79,8 +79,8 @@ module.exports = function (grunt) {
         }, 5000);
     });
 
-    grunt.registerTask("test", ["curl-dir", "concat", "twikify"]);
-    grunt.registerTask("default", ["clean", "jshint", "test", "copy"]);
+    grunt.registerTask("test", ["concat", "twikify"]);
+    grunt.registerTask("default", ["clean", "jshint", "curl-dir", "test", "copy"]);
 
     grunt.loadNpmTasks("grunt-contrib-jshint");
     grunt.loadNpmTasks("grunt-contrib-clean");
