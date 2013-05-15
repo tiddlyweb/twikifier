@@ -106,6 +106,7 @@ twikify.run = function(passedUri, filename) {
 
         request.on("error", function(error) {
             console.log("There was a problem with the request: " + error.message);
+            throw error.message;
         });
 
         request.end();
