@@ -13,7 +13,7 @@ var opts = require("tav").set({
 // require the jsdom and jquery libraries, via NODE_PATH
 // (probably /usr/local/lib/node if you are using npm)
 var jsdom = require("jsdom");
-var jquery = require("jQuery");
+var jquery = require("jquery");
 var fs = require("fs");
 var http = require("http");
 var url = require("url");
