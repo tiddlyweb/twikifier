@@ -1,0 +1,13 @@
+Running as a Service
+--------------------
+
+Copy twikifier to /etc/init.d
+
+Run as follows:
+
+(sudo) /etc/init.d/twikifier start
+
+Running under Supervisor
+------------------------
+
+Copy supervisor/twikifier.conf to /etc/supervisor/conf.d and reload supervisor
