@@ -1,7 +1,7 @@
 {
   "name": "twikifier",
   "description": "A node.js based wikifier for TiddlyWiki text.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "homepage": "https://github.com/cdent/twikifier",
   "author": "Chris Dent",
   "contributors": "Ben Paddock",
@@ -36,7 +36,7 @@
     "grunt-contrib-jshint": "~0.1.1",
     "grunt": "~0.4.1",
     "grunt-contrib-clean": "~0.4.0",
-    "grunt-curl": "~0.5.0",
+    "grunt-curl": "~1.0.0",
     "grunt-contrib-concat": "~0.1.3",
     "grunt-contrib-copy": "~0.4.0",
     "grunt-release": "~0.3.1"
