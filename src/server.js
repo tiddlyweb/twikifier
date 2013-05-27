@@ -264,6 +264,7 @@ function startUp() {
         server.on("connection", function (c) {
             var data = "",
                 id = uuid();
+			connectionCount++;
             c.once("timeout", function () {
                 c.end("timeout on socket communication");
                 c.destroy();
@@ -293,6 +294,7 @@ function startUp() {
             // timeout after 10 seconds of inactivity
             c.setTimeout(10000);
             if (connectionCount > maxClientConnections) {
+				console.log("process reached max connections, exiting");
                 server.close(process.exit);
             }
         });
