@@ -2,15 +2,15 @@
 
 "use strict";
 
-var async = require('async'),
-	Emitter = require('events').EventEmitter;
+var async = require("async"),
+	Emitter = require("events").EventEmitter;
 
 // utility funcions for twikify and twikifier related things
 var twik = {};
 
-twik.formatText = function(window, wikify, text) {
+twik.formatText = function (window, wikify, text) {
 	// create a browser window
-	var place = window.document.getElementById('tiddler');
+	var place = window.document.getElementById("tiddler");
 
 	// wikify the tiddler text.
 	// XXX This should be functional, returning a string,
@@ -20,11 +20,10 @@ twik.formatText = function(window, wikify, text) {
 	return window.document.innerHTML;
 };
 
-twik.loadRemoteTiddlers = function(store, Tiddler, uri, jsonTiddlers) {
+twik.loadRemoteTiddlers = function (store, Tiddler, uri, jsonTiddlers) {
 	var loadEmitter = new Emitter(),
-	    startFunction = function() {
-		var tiddlers = JSON.parse(jsonTiddlers), // TODO: make async?
-			storeURL;
+        startFunction = function () {
+		var tiddlers = JSON.parse(jsonTiddlers); // TODO: make async?
 
 		function addToStore(item, errcallback) {
 			var t = new Tiddler(item.title);
@@ -37,9 +36,9 @@ twik.loadRemoteTiddlers = function(store, Tiddler, uri, jsonTiddlers) {
 			errcallback();
 		}
 
-		function finishUp(err) {
+		function finishUp() {
 			tiddlers = null;
-			loadEmitter.emit('LoadDone', store);
+			loadEmitter.emit("LoadDone", store);
 		}
 
 		async.eachSeries(tiddlers, addToStore, finishUp);
