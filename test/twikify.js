@@ -99,8 +99,13 @@ twikify.run = function(passedUri, filename) {
                 data += chunk;
             });
             response.on("end", function() {
-                twik.loadRemoteTiddlers(store, Tiddler, uri, data);
-                processdata(window, wikify, filename);
+                var tiddlerLoader = twik.loadRemoteTiddlers(store, Tiddler,
+					uri, data),
+                    tiddlerEmitter = tiddlerLoader.emitter;
+                tiddlerEmitter.once("LoadDone", function (tiddlerStore) {
+					processdata(window, wikify, filename);
+				});
+                tiddlerLoader.start();
             });
         });
 
