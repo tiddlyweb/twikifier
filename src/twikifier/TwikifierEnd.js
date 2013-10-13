@@ -11,8 +11,11 @@ function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromT
 	var text = includeText ? title : null;
 	var linktext = encodeURIComponent(title);
 	var btn = createExternalLink(place, linktext, text);
+	var linkInfo = getTiddlyLinkInfo(title);
 	if (className) {
-		btn.className += ' ' + className;
+		btn.className = linkInfo.classes + ' ' + className;
+	} else {
+		btn.className = linkInfo.classes;
 	}
 	return btn;
 }
