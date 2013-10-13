@@ -1,16 +1,16 @@
 {
   "name": "twikifier",
   "description": "A node.js based wikifier for TiddlyWiki text.",
-  "version": "0.2.3",
-  "homepage": "https://github.com/cdent/twikifier",
+  "version": "0.3.0",
+  "homepage": "https://github.com/tiddlyweb/twikifier",
   "author": "Chris Dent",
   "contributors": "Ben Paddock",
   "repository": {
     "type": "git",
-    "url": "git://github.com/cdent/twikifier.git"
+    "url": "git://github.com/tiddlyweb/twikifier.git"
   },
   "bugs": {
-    "url": "https://github.com/cdent/twikifier/issues"
+    "url": "https://github.com/tiddlyweb/twikifier/issues"
   },
   "scripts": {
     "test": "grunt test"
