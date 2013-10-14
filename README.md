@@ -1,3 +1,5 @@
+[![NPM version](https://badge.fury.io/js/twikifier.png)](http://badge.fury.io/js/twikifier)
+
 # What
 
 This is a node.js-based wikifier for TiddlyWiki formatted wikitext.
