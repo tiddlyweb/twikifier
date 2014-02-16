@@ -1,3 +1,5 @@
 @pads is a tank link.
 
 WikiPage@pads is a tank tiddler link.
+
+This is a tag: <<tag tank>>

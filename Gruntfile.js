@@ -3,7 +3,8 @@
 module.exports = function (grunt) {
 
     var installation = grunt.option("installation") || "tiddlyspace";
-    var functionFile = grunt.file.read("src/twikifier/functions/" + installation + ".js");
+    var spaceLinkFunctionFile = grunt.file.read("src/twikifier/functions/space_link/" + installation + ".js");
+    var tagButtonFunctionFile = grunt.file.read("src/twikifier/functions/tag_button/" + installation + ".js");
 
     var tiddlyWikiFiles = ["BasicTypes.js", "Strings.js", "Config.js", "ConfigBrowser.js", "Filters.js",
         "FormatterHelpers.js", "Formatter.js", "Tiddler.js", "TiddlyWiki.js", "Utilities.js", "TiddlerFields.js",
@@ -56,10 +57,16 @@ module.exports = function (grunt) {
         replace: {
             dist: {
                 options: {
-                    patterns: [{
-                        match: "createSpaceLink",
-                        replacement: functionFile
-                    }]
+                    patterns: [
+                        {
+                            match: "createSpaceLink",
+                            replacement: spaceLinkFunctionFile
+                        },
+                        {
+                            match: "createTagButton",
+                            replacement: tagButtonFunctionFile
+                        }
+                    ]
                 },
                 files: [{
                     expand: true,

@@ -21,15 +21,7 @@ function createTiddlyLink(place,title,includeText,className,isStatic,linkedFromT
 }
 
 // clobber creatTagButton
-
-function createTagButton(place,tag,excludeTiddler,title,tooltip)
-{
-	var taglink = serverOptions.container ?
-		serverOptions.container + '?select=tag:' + encodeURIComponent(tag) :
-			"/search?q=tag:" + encodeURIComponent(tag);
-	var btn = createExternalLink(place, taglink, tag);
-	return btn;
-}
+@@createTagButton
 
 // messages required for invokeMacro
 function createTiddlyError(place, msg, details) {
