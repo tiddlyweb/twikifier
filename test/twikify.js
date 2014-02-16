@@ -102,7 +102,7 @@ twikify.run = function(passedUri, filename) {
                 var tiddlerLoader = twik.loadRemoteTiddlers(store, Tiddler,
 					uri, data),
                     tiddlerEmitter = tiddlerLoader.emitter;
-                tiddlerEmitter.once("LoadDone", function (tiddlerStore) {
+                tiddlerEmitter.once("LoadDone", function () {
 					processdata(window, wikify, filename);
 				});
                 tiddlerLoader.start();
