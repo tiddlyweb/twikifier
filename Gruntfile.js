@@ -2,6 +2,10 @@
 
 module.exports = function (grunt) {
 
+    var installation = grunt.option("installation") || "tiddlyspace";
+    var spaceLinkFunctionFile = grunt.file.read("src/twikifier/functions/space_link/" + installation + ".js");
+    var tagButtonFunctionFile = grunt.file.read("src/twikifier/functions/tag_button/" + installation + ".js");
+
     var tiddlyWikiFiles = ["BasicTypes.js", "Strings.js", "Config.js", "ConfigBrowser.js", "Filters.js",
         "FormatterHelpers.js", "Formatter.js", "Tiddler.js", "TiddlyWiki.js", "Utilities.js", "TiddlerFields.js",
         "Wikifier.js", "Macros.js", "Dates.js", "Lingo.js"];
@@ -23,7 +27,7 @@ module.exports = function (grunt) {
         concat: {
             dist: {
                 src: ["src/twikifier/TwikifierBase.js", orderedLibFiles, "lib/" + tiddlySpaceLinkPluginFile,
-                    "src/twikifier/TwikifierEnd.js"],
+                    "gen/TwikifierEnd.js"],
                 dest: "dist/twikifier.js"
             }
         },
@@ -49,7 +53,29 @@ module.exports = function (grunt) {
                 files: [{expand: true, flatten: true, src: ["src/server.js"], dest: "bin/" }]
             }
         },
-        clean: ["lib", "dist", "bin"]
+        clean: ["lib", "dist", "bin"],
+        replace: {
+            dist: {
+                options: {
+                    patterns: [
+                        {
+                            match: "createSpaceLink",
+                            replacement: spaceLinkFunctionFile
+                        },
+                        {
+                            match: "createTagButton",
+                            replacement: tagButtonFunctionFile
+                        }
+                    ]
+                },
+                files: [{
+                    expand: true,
+                    flatten: true,
+                    src: ["src/twikifier/TwikifierEnd.js"],
+                    dest: "gen/"
+                }]
+            }
+        }
         // Uncomment to change default release options
 //        release: {
 //            options: {
@@ -79,7 +105,7 @@ module.exports = function (grunt) {
         }, 5000);
     });
 
-    grunt.registerTask("test", ["concat", "twikify"]);
+    grunt.registerTask("test", ["replace", "concat", "twikify"]);
     grunt.registerTask("default", ["clean", "jshint", "curl-dir", "test", "copy"]);
 
     grunt.loadNpmTasks("grunt-contrib-jshint");
@@ -88,4 +114,5 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-contrib-concat");
     grunt.loadNpmTasks("grunt-contrib-copy");
     grunt.loadNpmTasks("grunt-release");
+    grunt.loadNpmTasks("grunt-replace");
 };

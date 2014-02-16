@@ -43,6 +43,23 @@ the files in the `test/files` directory against twikifier via
 
 The task also creates a distributable node application in `bin/server.js`.
 
+### Building For Different Installations
+
+Running `grunt` by default will build twikifier for TiddlySpace.
+
+To build for other installation types
+(e.g. [tank](https://github.com/cdent/tank)) run the following:
+
+    grunt --installation=tank
+
+This builds a customised version of twikifier that will wikify text
+according to the rules of the given installation.
+
+To create a custom build, add function overrides to `src/twikifer/functions`,
+naming the files after the installation.  Then run:
+
+    grunt --installation=<installation_name>
+
 ## Testing
 
 From the test directory, you can try your own wikitext by piping data
