@@ -1,8 +1,7 @@
 function createSpaceLink(element, tankName, title, alt) {
   var link, anchor;
 
-  // XXX serverOptions needs to come from config or parameters
-  link = serverOptions.host + "/tanks/" + tankName;
+  link = "/tanks/" + tankName;
 
   if (title) {
     anchor = createExternalLink(element, link + "/" +
